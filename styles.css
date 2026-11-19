@@ -1292,6 +1292,57 @@ kbd {
   box-shadow: var(--focus);
 }
 
+.password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.field input.has-password-toggle {
+  padding-right: 82px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.password-toggle:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.password-toggle .pw-eye-off {
+  display: none;
+}
+
+.password-toggle[aria-pressed="true"] .pw-eye {
+  display: none;
+}
+
+.password-toggle[aria-pressed="true"] .pw-eye-off {
+  display: block;
+}
+
 .field-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

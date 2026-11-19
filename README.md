@@ -27,6 +27,7 @@ This is a privacy convenience, not a security boundary: anyone with access to yo
 ## Features
 
 - Email + password accounts with names; each account's personal tasks stay private.
+- Show/Hide toggle on every password field, so you can check what you typed.
 - Personal and team tasks; teams with owners, members, and assignees.
 - Permissions: members can view and edit shared tasks; only the creator or owner can delete them; only the owner can manage or delete the team.
 - Title, date, status (Yet to start / In progress / On hold / Complete), priority, and notes.

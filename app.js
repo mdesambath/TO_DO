@@ -2113,6 +2113,40 @@
     });
   }
 
+  /* ---------------- Password visibility ---------------- */
+
+  function initPasswordToggles() {
+    const eye = '<svg class="pw-eye" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const eyeOff = '<svg class="pw-eye-off" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.7 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a17.8 17.8 0 0 1-2.2 3.1M6.2 6.2C3.7 7.8 2 12 2 12s3.6 7 10 7a10.9 10.9 0 0 0 4.3-.9"/><path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/></svg>';
+
+    document.querySelectorAll('input[type="password"]').forEach((input) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'password-wrap';
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      input.classList.add('has-password-toggle');
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'password-toggle';
+      button.setAttribute('aria-pressed', 'false');
+      button.setAttribute('aria-label', 'Show password');
+      button.title = 'Show password';
+      button.innerHTML = eye + eyeOff + '<span class="pw-label">Show</span>';
+      wrap.appendChild(button);
+
+      button.addEventListener('click', () => {
+        const visible = input.type === 'password';
+        input.type = visible ? 'text' : 'password';
+        button.setAttribute('aria-pressed', String(visible));
+        button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+        button.title = visible ? 'Hide password' : 'Show password';
+        button.querySelector('.pw-label').textContent = visible ? 'Hide' : 'Show';
+        input.focus();
+      });
+    });
+  }
+
   /* ---------------- Init ---------------- */
 
   function init() {
@@ -2126,6 +2160,7 @@
     els.scopeFilter.value = 'all';
 
     initTheme();
+    initPasswordToggles();
     bindAuthEvents();
     bindEvents();
     renderTeamPicker();
