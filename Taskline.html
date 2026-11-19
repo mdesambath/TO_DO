@@ -1053,6 +1053,29 @@ svg {
   gap: 5px;
 }
 
+.restore-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.restore-btn:hover {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
 .row-actions .icon-btn {
   width: 32px;
   height: 32px;
@@ -4536,7 +4559,9 @@ kbd {
           </select>
 
           <div class="row-actions">
-            ${task.archived ? `<button type="button" class="icon-btn" data-action="restore" aria-label="Restore task" title="Restore">${icon('restore')}</button>` : ''}
+            <button type="button" class="restore-btn" data-action="restore" aria-label="Restore task" title="Restore task">
+              ${icon('restore', 13)} Restore
+            </button>
             <button type="button" class="icon-btn" data-action="edit" aria-label="Edit task" title="Edit">${icon('pencil')}</button>
             ${task.canDelete === false ? '' : `<button type="button" class="icon-btn icon-btn-danger" data-action="delete" aria-label="Delete task" title="Delete">${icon('trash')}</button>`}
           </div>
@@ -4604,7 +4629,21 @@ kbd {
 
   function restoreTask(id) {
     const task = tasks.find((item) => item.id === id);
-    if (!task || !task.archived) return;
+    if (!task) return;
+
+    if (!task.archived) {
+      if (task.status !== 'complete') {
+        showToast('This task is already active.');
+        return;
+      }
+      // Imported or legacy task marked complete but not archived.
+      task.status = 'todo';
+      task.updatedAt = new Date().toISOString();
+      persistTask(task);
+      render();
+      showToast('Task restored to active tasks');
+      return;
+    }
 
     task.archived = false;
     task.archivedAt = null;
