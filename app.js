@@ -150,6 +150,7 @@
   let currentUser = null;
   let authTab = 'login';
   let storageMode = 'local';
+  let storageBlocked = false;
   let saveChain = Promise.resolve();
   let saveSequence = 0;
   let view = 'tasks';
@@ -479,6 +480,10 @@
 
   function setStorageStatus(state, text) {
     if (!els.storageLine) return;
+    if (storageBlocked && (state === 'account' || state === 'local')) {
+      state = 'error';
+      text = 'Not saved — this browser is blocking storage';
+    }
     els.storageLine.dataset.state = state;
     els.storageText.textContent = text;
     els.storageLine.title = text;
@@ -1609,6 +1614,15 @@
   /* ---------------- Loading ---------------- */
 
   async function boot() {
+    try {
+      const health = await apiRequest('/api/health');
+      storageBlocked = Boolean(health && health.persistent === false);
+      const warning = document.getElementById('storageWarning');
+      if (warning) warning.hidden = !storageBlocked;
+    } catch (error) {
+      /* the health check is informational; continue with the app */
+    }
+
     try {
       const data = await apiRequest(`${AUTH_API}/me`);
       if (data && data.user) {

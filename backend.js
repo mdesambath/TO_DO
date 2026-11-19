@@ -37,6 +37,50 @@
   const TASK_STATUSES = new Set(['todo', 'inprogress', 'hold', 'complete']);
   const TASK_PRIORITIES = new Set(['high', 'medium', 'low']);
 
+  /* ------------------------------------------------------------ storage
+   * Prefer localStorage, then sessionStorage, then an in-memory store.
+   * Some browsers block storage for file:// pages, private windows, or
+   * embedded previews. The app must still work in those contexts instead of
+   * failing on the very first API call.
+   */
+
+  const memoryStore = Object.create(null);
+  let activeStore = null;
+  let storageKind = 'memory';
+
+  function store() {
+    if (activeStore) return activeStore;
+
+    for (const name of ['localStorage', 'sessionStorage']) {
+      try {
+        const candidate = window[name];
+        if (!candidate) continue;
+        const probe = '__taskline_probe__';
+        candidate.setItem(probe, '1');
+        candidate.removeItem(probe);
+        activeStore = candidate;
+        storageKind = name;
+        return activeStore;
+      } catch (error) {
+        /* try the next storage option */
+      }
+    }
+
+    activeStore = {
+      getItem(key) {
+        return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null;
+      },
+      setItem(key, value) {
+        memoryStore[key] = String(value);
+      },
+      removeItem(key) {
+        delete memoryStore[key];
+      },
+    };
+    storageKind = 'memory';
+    return activeStore;
+  }
+
   /* --------------------------------------------------------------- errors */
 
   class ApiError extends Error {
@@ -267,7 +311,7 @@
   function readJson(key, fallback) {
     let raw;
     try {
-      raw = localStorage.getItem(key);
+      raw = store().getItem(key);
     } catch (error) {
       throw new ApiError('This browser is blocking local storage.', 500, 'storage_error');
     }
@@ -281,7 +325,7 @@
 
   function writeJson(key, value) {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      store().setItem(key, JSON.stringify(value));
     } catch (error) {
       throw new ApiError(
         'This browser is out of storage space, so the change was not saved.',
@@ -463,7 +507,7 @@
 
   function clearSession() {
     try {
-      localStorage.removeItem(SESSION_KEY);
+      store().removeItem(SESSION_KEY);
     } catch (error) {
       /* ignore */
     }
@@ -818,7 +862,7 @@
     }
     saveTeams(teams.filter((item) => item.id !== teamId));
     try {
-      localStorage.removeItem(teamKey(teamId));
+      store().removeItem(teamKey(teamId));
     } catch (error) {
       /* ignore */
     }
@@ -1273,9 +1317,11 @@
     }
 
     if (path === '/api/health') {
+      store(); // detect the active store before reporting it
       return {
         ok: true,
-        storage: 'browser localStorage',
+        storage: storageKind,
+        persistent: storageKind !== 'memory',
         auth: 'local account',
         mail: 'in-app code',
       };

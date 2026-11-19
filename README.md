@@ -62,6 +62,7 @@ Any modern browser with Web Crypto and `localStorage` works. If Web Crypto is un
 ## Troubleshooting
 
 - **"Invalid request." when creating an account or adding a member** — you are using an older `backend.js`. Pull the latest version (commit `1b668d0` or newer) or re-download `Taskline-2026-11-20.zip`, then reload the page. Newer versions parse API paths directly and do not depend on the page URL.
+- **"This browser is blocking local storage."** — the app is being opened in a context that denies Web Storage (a preview pane, an embedded webview, a private/incognito window, or a browser setting blocking site data). Open `Taskline.html` directly in a normal Chrome or Edge window, not inside a preview. Recent versions fall back to `sessionStorage` or memory so you can still use the app, but data kept in memory is lost when the tab closes (a warning banner is shown). To save permanently, allow site data for the file or use a normal browser window; use **Export JSON** before closing if storage is blocked.
 - **"An account with that email already exists"** — that email is already registered in this browser. Use **Sign in**, or **Forgot password?** if you need to reset it.
 - **Accounts are missing** — each browser profile has its own accounts. Use **Import JSON** in the footer to restore tasks from a backup.
 
