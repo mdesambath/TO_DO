@@ -58,6 +58,12 @@ Recovery codes are generated in the browser and shown on screen; they are never 
 
 Any modern browser with Web Crypto and `localStorage` works. If Web Crypto is unavailable, `backend.js` falls back to a pure-JavaScript SHA-256/PBKDF2 implementation (slower, but the hashes are identical).
 
+## Troubleshooting
+
+- **"Invalid request." when creating an account or adding a member** — you are using an older `backend.js`. Pull the latest version (commit `1b668d0` or newer) or re-download `Taskline-2026-11-20.zip`, then reload the page. Newer versions parse API paths directly and do not depend on the page URL.
+- **"An account with that email already exists"** — that email is already registered in this browser. Use **Sign in**, or **Forgot password?** if you need to reset it.
+- **Accounts are missing** — each browser profile has its own accounts. Use **Import JSON** in the footer to restore tasks from a backup.
+
 ## Backup reminder
 
 There is no server-side copy. Export JSON regularly and keep the file somewhere safe. Import restores tasks into the currently signed-in account.
