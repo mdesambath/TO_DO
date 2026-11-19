@@ -1,0 +1,20 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.vscode/
+.idea/
+
+# Legacy Python server artifacts (no longer part of the app)
+__pycache__/
+*.py[cod]
+data/
+
+# Local test and build artifacts
+_*.html
+*.log
+
+# Archives
+*.zip

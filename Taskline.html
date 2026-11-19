@@ -1,0 +1,5862 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Taskline — a private daily task planner with accounts, statuses, and an archive.">
+  <title>Taskline — Daily tasks</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%236366f1'/%3E%3Cpath d='M28 52l14 14 30-32' fill='none' stroke='white' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('taskline.theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        document.documentElement.dataset.theme = 'light';
+      }
+    })();
+  </script>
+  <style>
+/* =========================================================
+   Taskline — styles
+   ========================================================= */
+
+:root {
+  color-scheme: light;
+
+  --bg: #f4f6fb;
+  --bg-image:
+    radial-gradient(1100px 520px at 12% -8%, rgba(99, 102, 241, 0.13), transparent 60%),
+    radial-gradient(900px 460px at 100% 0%, rgba(139, 92, 246, 0.10), transparent 55%);
+
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #eef2f7;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-soft: #94a3b8;
+  --border: #e3e8f0;
+  --border-strong: #cbd5e1;
+
+  --primary: #4f46e5;
+  --primary-strong: #4338ca;
+  --primary-soft: #eef2ff;
+  --primary-contrast: #ffffff;
+
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+
+  --todo: #475569;
+  --todo-soft: #f1f5f9;
+  --inprogress: #2563eb;
+  --inprogress-soft: #eff6ff;
+  --hold: #b45309;
+  --hold-strong: #d97706;
+  --hold-soft: #fffbeb;
+  --hold-border: #fcd34d;
+  --complete: #059669;
+  --complete-soft: #ecfdf5;
+
+  --high: #dc2626;
+  --high-soft: #fef2f2;
+  --medium: #c2740a;
+  --medium-soft: #fffbeb;
+  --low: #64748b;
+  --low-soft: #f1f5f9;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 12px 32px -14px rgba(15, 23, 42, 0.22);
+  --shadow-lg: 0 30px 70px -24px rgba(15, 23, 42, 0.35);
+
+  --radius: 16px;
+  --radius-sm: 10px;
+  --focus: 0 0 0 3px rgba(99, 102, 241, 0.28);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #080c18;
+  --bg-image:
+    radial-gradient(1100px 520px at 12% -8%, rgba(99, 102, 241, 0.20), transparent 60%),
+    radial-gradient(900px 460px at 100% 0%, rgba(139, 92, 246, 0.15), transparent 55%);
+
+  --surface: #101827;
+  --surface-2: #0c1422;
+  --surface-3: #1a2438;
+  --text: #e7edf9;
+  --text-muted: #94a3b8;
+  --text-soft: #64748b;
+  --border: #23304a;
+  --border-strong: #33415c;
+
+  --primary: #818cf8;
+  --primary-strong: #a5b4fc;
+  --primary-soft: rgba(129, 140, 248, 0.14);
+
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+
+  --todo: #cbd5e1;
+  --todo-soft: rgba(148, 163, 184, 0.13);
+  --inprogress: #93c5fd;
+  --inprogress-soft: rgba(96, 165, 250, 0.13);
+  --hold: #fcd34d;
+  --hold-strong: #fbbf24;
+  --hold-soft: rgba(251, 191, 36, 0.10);
+  --hold-border: rgba(251, 191, 36, 0.38);
+  --complete: #6ee7b7;
+  --complete-soft: rgba(52, 211, 153, 0.12);
+
+  --high: #fca5a5;
+  --high-soft: rgba(248, 113, 113, 0.12);
+  --medium: #fcd34d;
+  --medium-soft: rgba(251, 191, 36, 0.11);
+  --low: #cbd5e1;
+  --low-soft: rgba(148, 163, 184, 0.12);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 14px 34px -16px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 30px 80px -24px rgba(0, 0, 0, 0.85);
+
+  --focus: 0 0 0 3px rgba(129, 140, 248, 0.32);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg);
+  background-image: var(--bg-image);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, p {
+  margin: 0;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+svg {
+  flex: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: var(--focus);
+}
+
+.app {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 28px 20px 72px;
+}
+
+/* ---------- Top bar ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  box-shadow: 0 10px 24px -10px rgba(99, 102, 241, 0.75);
+}
+
+.brand-text h1 {
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.brand-text p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* ---------- Icon buttons ---------- */
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.icon-btn:active {
+  transform: translateY(1px);
+}
+
+.icon-btn-danger:hover {
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  color: var(--danger);
+}
+
+.theme-toggle {
+  width: 42px;
+  height: 42px;
+}
+
+[data-theme="light"] .icon-sun,
+[data-theme="dark"] .icon-moon {
+  display: none;
+}
+
+/* ---------- Composer ---------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.composer {
+  padding: 18px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.composer:focus-within {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  box-shadow: var(--shadow-md), 0 0 0 4px color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.composer-main {
+  display: flex;
+  gap: 10px;
+}
+
+.composer-main input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 15px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.composer-main input[type="text"]::placeholder {
+  color: var(--text-soft);
+}
+
+.composer-main input[type="text"]:hover {
+  border-color: var(--border-strong);
+}
+
+.composer-main input[type="text"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: var(--focus);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: transform 0.15s ease, filter 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  box-shadow: 0 10px 22px -10px rgba(99, 102, 241, 0.85);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.07);
+}
+
+.btn-ghost {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.btn-ghost:hover {
+  background: var(--surface-3);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--danger) 80%, transparent);
+}
+
+.btn-danger:hover {
+  filter: brightness(1.06);
+}
+
+.composer-main .btn {
+  height: 48px;
+  padding: 0 22px;
+}
+
+.composer-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 14px;
+}
+
+.composer-sharing {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.scope-toggle {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.scope-btn {
+  height: 28px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.scope-btn:hover {
+  color: var(--text);
+}
+
+.scope-btn.is-active {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  box-shadow: var(--shadow-sm);
+}
+
+.scope-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+
+.composer-team-link {
+  margin-left: auto;
+}
+
+.field-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.field-inline input,
+.field-inline select {
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-2);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--text);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.field-inline input:hover,
+.field-inline select:hover {
+  border-color: var(--border-strong);
+}
+
+.field-inline input:focus,
+.field-inline select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: var(--focus);
+}
+
+.date-presets {
+  display: flex;
+  gap: 6px;
+}
+
+.chip-btn {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.chip-btn:hover {
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  color: var(--primary);
+}
+
+.text-btn {
+  margin-left: auto;
+  padding: 4px 2px;
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.text-btn:hover {
+  text-decoration: underline;
+}
+
+.details-row {
+  margin-top: 12px;
+}
+
+.details-row textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 14px;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.details-row textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: var(--focus);
+}
+
+/* ---------- Stats ---------- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 13px 16px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+}
+
+.stat-hint {
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.stat-hold {
+  background: linear-gradient(180deg, var(--hold-soft), var(--surface) 85%);
+  border-color: var(--hold-border);
+}
+
+.stat-hold .stat-value,
+.stat-hold .stat-label {
+  color: var(--hold);
+}
+
+/* ---------- Toolbar ---------- */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 22px 0 16px;
+}
+
+.tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--surface-3);
+  border-radius: 999px;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab.is-active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.tab-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 19px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tab.is-active .tab-count {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-field svg {
+  position: absolute;
+  left: 12px;
+  color: var(--text-soft);
+  pointer-events: none;
+}
+
+.search-field input {
+  width: 216px;
+  height: 38px;
+  padding: 0 12px 0 36px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 13px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-field input::placeholder {
+  color: var(--text-soft);
+}
+
+.search-field input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--focus);
+}
+
+.filter-select {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.filter-select:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--focus);
+}
+
+/* ---------- Task groups ---------- */
+
+.task-list-root {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.group-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 0 2px;
+}
+
+.group-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.group-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.group-count {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---------- Task card ---------- */
+
+.task {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+}
+
+.task:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.task.is-hold {
+  background:
+    linear-gradient(90deg, var(--hold-soft), transparent 55%),
+    var(--surface);
+  border-color: var(--hold-border);
+  border-left-width: 4px;
+  border-left-color: var(--hold-strong);
+}
+
+.task.is-archived {
+  background: var(--surface-2);
+  box-shadow: none;
+}
+
+.task.is-archived .task-title {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  color: var(--text-muted);
+}
+
+.task.is-archived:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.check {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-top: 1px;
+  padding: 0;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.check svg {
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.check:hover {
+  border-color: var(--complete);
+  background: var(--complete-soft);
+}
+
+.check:hover svg {
+  opacity: 0.55;
+  color: var(--complete);
+}
+
+.check.is-checked {
+  border-color: var(--complete);
+  background: var(--complete);
+  color: #fff;
+}
+
+.check.is-checked svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.check.is-checked:hover {
+  filter: brightness(1.05);
+  background: var(--complete);
+}
+
+.check.is-checked:hover svg {
+  color: #fff;
+}
+
+.task-main {
+  min-width: 0;
+}
+
+.task-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+
+.task-title {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.status-todo {
+  background: var(--todo-soft);
+  color: var(--todo);
+}
+
+.status-inprogress {
+  background: var(--inprogress-soft);
+  color: var(--inprogress);
+}
+
+.status-hold {
+  background: var(--hold-soft);
+  color: var(--hold);
+}
+
+.status-complete {
+  background: var(--complete-soft);
+  color: var(--complete);
+}
+
+.priority-high {
+  background: var(--high-soft);
+  color: var(--high);
+}
+
+.priority-medium {
+  background: var(--medium-soft);
+  color: var(--medium);
+}
+
+.priority-low {
+  background: var(--low-soft);
+  color: var(--low);
+}
+
+.chip-overdue {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 22%, transparent);
+}
+
+.chip-team {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.chip-personal {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+.chip-assignee {
+  background: var(--complete-soft);
+  color: var(--complete);
+}
+
+.chip-unassigned {
+  background: var(--surface-3);
+  color: var(--text-soft);
+}
+
+.task-notes {
+  margin-top: 5px;
+  font-size: 13px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hold-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 9px;
+  padding: 7px 10px;
+  border: 1px dashed var(--hold-border);
+  border-radius: 9px;
+  background: var(--hold-soft);
+  color: var(--hold);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.hold-note svg {
+  margin-top: 2px;
+}
+
+.task-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.status-select {
+  height: 32px;
+  max-width: 160px;
+  padding: 0 26px 0 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.status-select:hover {
+  filter: brightness(0.97);
+}
+
+[data-theme="dark"] .status-select:hover {
+  filter: brightness(1.12);
+}
+
+.status-select:focus {
+  outline: none;
+  box-shadow: var(--focus);
+}
+
+.status-select.status-todo,
+.status-select.status-inprogress,
+.status-select.status-hold,
+.status-select.status-complete {
+  border-color: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.row-actions .icon-btn {
+  width: 32px;
+  height: 32px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.row-actions .icon-btn:hover {
+  background: var(--surface-3);
+  border-color: var(--border);
+}
+
+.row-actions .icon-btn-danger:hover {
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger);
+}
+
+/* ---------- Empty state ---------- */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 52px 24px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 65%, transparent);
+}
+
+.empty-icon {
+  font-size: 34px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.empty h3 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.empty p {
+  max-width: 400px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.empty .btn {
+  margin-top: 12px;
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin-top: 42px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.storage-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-muted);
+}
+
+.storage-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-soft);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-soft) 18%, transparent);
+}
+
+.storage-line[data-state="server"] .storage-dot {
+  background: var(--complete);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--complete) 18%, transparent);
+}
+
+.storage-line[data-state="saving"] .storage-dot {
+  background: var(--medium);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--medium) 18%, transparent);
+  animation: storage-pulse 0.9s ease-in-out infinite;
+}
+
+.storage-line[data-state="error"] .storage-dot {
+  background: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 18%, transparent);
+}
+
+@keyframes storage-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.link-btn {
+  padding: 2px 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 2px;
+}
+
+.link-btn:hover {
+  color: var(--primary);
+}
+
+.footer-shortcuts {
+  color: var(--text-soft);
+}
+
+.footer-sep {
+  margin: 0 4px;
+  opacity: 0.6;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 5px;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ---------- Dialogs ---------- */
+
+.modal {
+  width: min(580px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  overflow: auto;
+}
+
+.modal-sm {
+  width: min(440px, calc(100vw - 32px));
+}
+
+.modal::backdrop {
+  background: rgba(3, 7, 18, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-head h2 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.modal-head .icon-btn {
+  width: 32px;
+  height: 32px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.modal-head .icon-btn:hover {
+  background: var(--surface-3);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.modal-body > p {
+  font-size: 14px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: 0 0 18px 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field > span {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.field input,
+.field select {
+  height: 40px;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 76px;
+}
+
+.field input:hover,
+.field select:hover,
+.field textarea:hover {
+  border-color: var(--border-strong);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: var(--focus);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field-error {
+  margin-top: -6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.hint {
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.hint strong {
+  color: var(--text);
+}
+
+/* ---------- Teams ---------- */
+
+.teams-modal {
+  width: min(680px, calc(100vw - 32px));
+}
+
+.team-create {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.team-create .btn {
+  align-self: flex-start;
+}
+
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.team-card {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.team-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.team-title-wrap {
+  min-width: 0;
+}
+
+.team-name,
+.team-name-input {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.team-name-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.team-name-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: var(--focus);
+}
+
+.team-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.team-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.member-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 12px;
+}
+
+.member-chip small {
+  color: var(--text-soft);
+  font-size: 11px;
+}
+
+.member-remove {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.member-remove:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.team-add-member {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.team-member-input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.team-member-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: var(--focus);
+}
+
+.btn-sm {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.empty-inline {
+  padding: 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: min(480px, calc(100vw - 32px));
+  padding: 11px 12px 11px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: #111827;
+  color: #f1f5f9;
+  font-size: 13.5px;
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-50%);
+  animation: toast-in 0.22s ease-out;
+}
+
+.toast > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.toast-action {
+  flex: none;
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+  color: #a5b4fc;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.toast-action:hover {
+  text-decoration: underline;
+}
+
+.toast-close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #94a3b8;
+}
+
+.toast-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* ---------- Authentication ---------- */
+
+.auth-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 32px 20px 48px;
+}
+
+.auth-theme {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+}
+
+.auth-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: min(430px, 100%);
+  padding: 28px;
+  box-shadow: var(--shadow-md);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.auth-brand h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.auth-brand p {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 11px;
+  background: var(--surface-3);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-tab:hover {
+  color: var(--text);
+}
+
+.auth-tab.is-active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.auth-link {
+  align-self: flex-start;
+  margin-left: 0;
+}
+
+.auth-notice {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent);
+  border-radius: 9px;
+  background: var(--primary-soft);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-foot {
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+.auth-foot code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+/* ---------- Account menu ---------- */
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account {
+  position: relative;
+}
+
+.account-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 10px 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.account-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.account-email {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-chevron {
+  color: var(--text-soft);
+}
+
+.account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 240px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.account-menu-label {
+  padding: 8px 10px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.account-menu-label strong {
+  color: var(--text);
+}
+
+.account-menu-item {
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.account-menu-item:hover {
+  background: var(--surface-3);
+}
+
+.account-menu-item.is-danger {
+  color: var(--danger);
+}
+
+.account-menu-item.is-danger:hover {
+  background: var(--danger-soft);
+}
+
+/* ---------- Password reset ---------- */
+
+.reset-note {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-2);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.reset-note.is-success {
+  border-color: color-mix(in srgb, var(--complete) 35%, transparent);
+  background: var(--complete-soft);
+  color: var(--text);
+}
+
+.mail-preview {
+  max-height: 170px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 880px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .app {
+    padding: 20px 16px 60px;
+  }
+
+  .auth-view {
+    padding: 24px 16px 40px;
+  }
+
+  .auth-card {
+    padding: 22px;
+  }
+
+  .account-email {
+    display: none;
+  }
+
+  .account-btn {
+    padding-right: 6px;
+  }
+
+  .composer-main {
+    flex-direction: column;
+  }
+
+  .composer-main .btn {
+    width: 100%;
+  }
+
+  .text-btn {
+    margin-left: 0;
+  }
+
+  .toolbar {
+    align-items: stretch;
+  }
+
+  .tabs {
+    align-self: flex-start;
+  }
+
+  .filters {
+    width: 100%;
+  }
+
+  .search-field {
+    flex: 1;
+  }
+
+  .search-field input {
+    width: 100%;
+  }
+
+  .task {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .task-side {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .row-actions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .brand-text h1 {
+    font-size: 20px;
+  }
+
+  .brand-text p {
+    font-size: 12px;
+  }
+
+  .stats {
+    gap: 8px;
+  }
+
+  .stat {
+    padding: 11px 13px 12px;
+  }
+
+  .stat-value {
+    font-size: 21px;
+  }
+
+  .group-count {
+    display: none;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .composer-sharing {
+    align-items: stretch;
+  }
+
+  .composer-team-link {
+    margin-left: 0;
+  }
+
+  .team-add-member {
+    flex-direction: column;
+  }
+
+  .team-add-member .btn {
+    width: 100%;
+  }
+
+  .team-card-head {
+    flex-direction: column;
+  }
+
+  .modal-foot {
+    flex-wrap: wrap;
+  }
+
+  .modal-foot .btn {
+    flex: 1;
+  }
+
+  .toast {
+    bottom: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+</style>
+</head>
+<body>
+  <main id="authView" class="auth-view" hidden>
+    <button id="authThemeToggle" class="icon-btn theme-toggle auth-theme" type="button" aria-label="Switch theme" title="Switch theme">
+      <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+
+    <section class="auth-card card" aria-labelledby="authTitle">
+      <div class="auth-brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m5 12 4 4L19 6"/>
+          </svg>
+        </div>
+        <div>
+          <h1 id="authTitle">Taskline</h1>
+          <p>Your tasks are private to your account.</p>
+        </div>
+      </div>
+
+      <div class="auth-tabs" role="tablist" aria-label="Account">
+        <button type="button" class="auth-tab is-active" data-auth-tab="login" role="tab" aria-selected="true">Sign in</button>
+        <button type="button" class="auth-tab" data-auth-tab="register" role="tab" aria-selected="false">Create account</button>
+      </div>
+
+      <p id="authNotice" class="auth-notice" role="status" hidden></p>
+
+      <form id="loginForm" class="auth-form" novalidate>
+        <label class="field">
+          <span>Email</span>
+          <input id="loginEmail" type="email" autocomplete="email" maxlength="254" required>
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="loginPassword" type="password" autocomplete="current-password" maxlength="200" required>
+        </label>
+        <p class="field-error" id="loginError" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        <button type="button" id="forgotBtn" class="text-btn auth-link">Forgot password?</button>
+      </form>
+
+      <form id="registerForm" class="auth-form" novalidate hidden>
+        <label class="field">
+          <span>Your name</span>
+          <input id="registerName" type="text" autocomplete="name" maxlength="80" required>
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input id="registerEmail" type="email" autocomplete="email" maxlength="254" required>
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="registerPassword" type="password" autocomplete="new-password" minlength="8" maxlength="200" required>
+        </label>
+        <label class="field">
+          <span>Confirm password</span>
+          <input id="registerConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="200" required>
+        </label>
+        <label class="field">
+          <span>Mother's maiden name</span>
+          <input id="registerMaiden" type="text" autocomplete="off" maxlength="80" required>
+        </label>
+        <p class="hint">Your mother's maiden name confirms password changes. If it does not match, we email a verification code instead.</p>
+        <p class="field-error" id="registerError" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+      </form>
+    </section>
+
+    <p class="auth-foot">Accounts and tasks are stored in this browser. Export JSON from the footer to keep a backup.</p>
+  </main>
+
+  <div class="app" id="appShell" hidden>
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m5 12 4 4L19 6"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Taskline</h1>
+          <p>Plan your day. Keep moving.</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="account" id="account">
+          <button type="button" id="accountBtn" class="account-btn" aria-haspopup="true" aria-expanded="false" aria-controls="accountMenu">
+            <span class="avatar" id="accountInitial" aria-hidden="true">?</span>
+            <span class="account-email" id="accountEmail"></span>
+            <svg class="account-chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+          <div class="account-menu" id="accountMenu" hidden>
+            <p class="account-menu-label"><strong id="accountMenuName"></strong><br><span id="accountMenuEmail"></span></p>
+            <button type="button" id="manageTeamsBtn" class="account-menu-item">Manage teams</button>
+            <button type="button" id="changePasswordBtn" class="account-menu-item">Change password</button>
+            <button type="button" id="signOutBtn" class="account-menu-item is-danger">Sign out</button>
+          </div>
+        </div>
+
+        <button id="themeToggle" class="icon-btn theme-toggle" type="button" aria-label="Switch theme" title="Switch theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="composer card" aria-labelledby="composerTitle">
+      <h2 id="composerTitle" class="sr-only">Add a task</h2>
+      <form id="taskForm" autocomplete="off">
+        <div class="composer-main">
+          <input id="taskTitle" name="title" type="text" placeholder="What needs to be done?" maxlength="140" required aria-label="Task title">
+          <button type="submit" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add task
+          </button>
+        </div>
+
+        <div class="composer-meta">
+          <label class="field-inline">
+            <span>Date</span>
+            <input id="taskDate" name="date" type="date" required>
+          </label>
+
+          <div class="date-presets" aria-label="Quick date">
+            <button type="button" class="chip-btn" data-set-date="today">Today</button>
+            <button type="button" class="chip-btn" data-set-date="tomorrow">Tomorrow</button>
+          </div>
+
+          <label class="field-inline">
+            <span>Status</span>
+            <select id="taskStatus" name="status"></select>
+          </label>
+
+          <label class="field-inline">
+            <span>Priority</span>
+            <select id="taskPriority" name="priority"></select>
+          </label>
+
+          <button type="button" id="detailsToggle" class="text-btn" aria-expanded="false" aria-controls="detailsRow">+ Notes</button>
+        </div>
+
+        <div class="composer-sharing">
+          <div class="scope-toggle" role="group" aria-label="Task visibility">
+            <button type="button" class="scope-btn is-active" data-scope="personal" aria-pressed="true">Personal</button>
+            <button type="button" class="scope-btn" data-scope="team" aria-pressed="false">Team</button>
+          </div>
+
+          <label class="field-inline" id="teamPickerWrap" hidden>
+            <span>Team</span>
+            <select id="taskTeam"></select>
+          </label>
+
+          <label class="field-inline" id="assigneePickerWrap" hidden>
+            <span>Assign to</span>
+            <select id="taskAssignee"></select>
+          </label>
+
+          <button type="button" id="composerTeamsBtn" class="text-btn composer-team-link">Manage teams</button>
+        </div>
+
+        <div id="detailsRow" class="details-row" hidden>
+          <label class="sr-only" for="taskNotes">Notes</label>
+          <textarea id="taskNotes" name="notes" rows="2" maxlength="500" placeholder="Add details or context (optional)"></textarea>
+        </div>
+      </form>
+    </section>
+
+    <section class="stats" id="stats" aria-label="Task summary"></section>
+
+    <section class="toolbar" aria-label="Task controls">
+      <div class="tabs" role="tablist" aria-label="Views">
+        <button type="button" id="tabTasks" class="tab is-active" data-view="tasks" role="tab" aria-selected="true" aria-controls="taskList">
+          Tasks <span class="tab-count" id="activeCount">0</span>
+        </button>
+        <button type="button" id="tabArchive" class="tab" data-view="archive" role="tab" aria-selected="false" aria-controls="taskList">
+          Archive <span class="tab-count" id="archivedCount">0</span>
+        </button>
+      </div>
+
+      <div class="filters">
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input id="search" type="search" placeholder="Search tasks" aria-label="Search tasks">
+        </div>
+
+        <div class="filter-field" id="statusFilterWrap">
+          <label class="sr-only" for="statusFilter">Filter by status</label>
+          <select id="statusFilter" class="filter-select"></select>
+        </div>
+
+        <div class="filter-field">
+          <label class="sr-only" for="scopeFilter">Filter by task type</label>
+          <select id="scopeFilter" class="filter-select">
+            <option value="all">All tasks</option>
+            <option value="personal">Personal</option>
+            <option value="team">Team</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <main id="taskList" class="task-list-root" role="tabpanel" aria-labelledby="tabTasks"></main>
+
+    <footer class="footer">
+      <p class="storage-line" id="storageLine" data-state="checking" role="status">
+        <span class="storage-dot" aria-hidden="true"></span>
+        <span id="storageText">Loading your tasks…</span>
+      </p>
+      <p class="footer-actions">
+        <button type="button" class="link-btn" id="exportBtn">Export JSON</button>
+        <span class="footer-sep">·</span>
+        <button type="button" class="link-btn" id="importBtn">Import JSON</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </p>
+      <p class="footer-shortcuts"><kbd>N</kbd> new task <span class="footer-sep">·</span> <kbd>/</kbd> search</p>
+    </footer>
+  </div>
+
+  <dialog id="editDialog" class="modal">
+    <form id="editForm" novalidate>
+      <header class="modal-head">
+        <h2>Edit task</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <label class="field">
+          <span>Task</span>
+          <input id="editTitle" type="text" maxlength="140" required>
+        </label>
+        <p class="field-error" id="editError" hidden>Please enter a task title.</p>
+
+        <div class="field-grid">
+          <label class="field">
+            <span>Date</span>
+            <input id="editDate" type="date" required>
+          </label>
+          <label class="field">
+            <span>Status</span>
+            <select id="editStatus"></select>
+          </label>
+          <label class="field">
+            <span>Priority</span>
+            <select id="editPriority"></select>
+          </label>
+        </div>
+
+        <div id="editSharing" class="field-grid" hidden>
+          <label class="field">
+            <span>Shared with</span>
+            <input id="editTeamName" type="text" readonly>
+          </label>
+          <label class="field">
+            <span>Assignee</span>
+            <select id="editAssignee"></select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Notes</span>
+          <textarea id="editNotes" rows="3" maxlength="500" placeholder="Add details or context (optional)"></textarea>
+        </label>
+
+        <p class="hint">Setting the status to <strong>Complete</strong> archives the task. Changing an archived task to any other status restores it.</p>
+      </div>
+
+      <footer class="modal-foot">
+        <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Save changes</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="confirmDialog" class="modal modal-sm">
+    <header class="modal-head">
+      <h2 id="confirmTitle">Delete task?</h2>
+    </header>
+    <div class="modal-body">
+      <p id="confirmMessage"></p>
+    </div>
+    <footer class="modal-foot">
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete task</button>
+    </footer>
+  </dialog>
+
+  <dialog id="passwordDialog" class="modal modal-sm">
+    <form id="passwordForm" novalidate>
+      <header class="modal-head">
+        <h2>Change password</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <p class="hint">Confirm with your current password and your mother's maiden name. If the maiden name does not match, we will email a verification code and open the reset window.</p>
+        <label class="field">
+          <span>Current password</span>
+          <input id="pwCurrent" type="password" autocomplete="current-password" maxlength="200" required>
+        </label>
+        <label class="field">
+          <span>Mother's maiden name</span>
+          <input id="pwMaiden" type="text" autocomplete="off" maxlength="80" required>
+        </label>
+        <label class="field">
+          <span>New password</span>
+          <input id="pwNew" type="password" autocomplete="new-password" minlength="8" maxlength="200" required>
+        </label>
+        <label class="field">
+          <span>Confirm new password</span>
+          <input id="pwConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="200" required>
+        </label>
+        <p class="field-error" id="pwError" hidden></p>
+      </div>
+
+      <footer class="modal-foot">
+        <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Update password</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="resetDialog" class="modal modal-sm">
+    <form id="resetForm" novalidate>
+      <header class="modal-head">
+        <h2>Reset password</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </header>
+
+      <div id="resetStepOne" class="modal-body">
+        <p class="hint">Enter your email and your mother's maiden name. If the maiden name matches, you can choose a new password right away. If it does not, we will email you a verification code.</p>
+        <label class="field">
+          <span>Email</span>
+          <input id="resetEmail" type="email" autocomplete="email" maxlength="254" required>
+        </label>
+        <label class="field">
+          <span>Mother's maiden name</span>
+          <input id="resetMaiden" type="text" autocomplete="off" maxlength="80" required>
+        </label>
+        <p class="field-error" id="resetErrorOne" hidden></p>
+      </div>
+
+      <div id="resetStepTwo" class="modal-body" hidden>
+        <p id="resetNote" class="reset-note"></p>
+        <div id="resetCodeWrap">
+          <label class="field">
+            <span>Verification code</span>
+            <input id="resetCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code">
+          </label>
+          <button type="button" id="viewMailBtn" class="text-btn">Show verification code</button>
+          <pre id="resetMailPreview" class="mail-preview" hidden></pre>
+        </div>
+        <label class="field">
+          <span>New password</span>
+          <input id="resetNew" type="password" autocomplete="new-password" minlength="8" maxlength="200" required>
+        </label>
+        <label class="field">
+          <span>Confirm new password</span>
+          <input id="resetConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="200" required>
+        </label>
+        <p class="field-error" id="resetErrorTwo" hidden></p>
+      </div>
+
+      <footer id="resetFootOne" class="modal-foot">
+        <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Continue</button>
+      </footer>
+      <footer id="resetFootTwo" class="modal-foot" hidden>
+        <button type="button" id="resetBackBtn" class="btn btn-ghost">Back</button>
+        <button type="submit" class="btn btn-primary">Change password</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="teamsDialog" class="modal teams-modal">
+    <header class="modal-head">
+      <h2>Teams</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </header>
+
+    <div class="modal-body">
+      <p class="hint">Create a team and add registered users by email. Tasks shared with a team are visible to every member, while personal tasks stay private to you.</p>
+
+      <form id="teamCreateForm" class="team-create" novalidate>
+        <label class="field">
+          <span>Team name</span>
+          <input id="teamName" type="text" maxlength="80" placeholder="e.g. Design team" required>
+        </label>
+        <label class="field">
+          <span>Members (email addresses, comma separated)</span>
+          <input id="teamMembers" type="text" maxlength="1000" placeholder="teammate@example.com, another@example.com">
+        </label>
+        <p class="field-error" id="teamCreateError" hidden></p>
+        <button type="submit" class="btn btn-primary">Create team</button>
+      </form>
+
+      <div id="teamList" class="team-list" aria-live="polite"></div>
+    </div>
+
+    <footer class="modal-foot">
+      <button type="button" class="btn btn-ghost" data-close>Done</button>
+    </footer>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+    <span id="toastMessage"></span>
+    <button id="toastAction" class="toast-action" type="button" hidden>Undo</button>
+    <button id="toastClose" class="toast-close" type="button" aria-label="Dismiss">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <script>
+/* Taskline browser backend.
+ *
+ * A dependency-free replacement for the old Python server. It implements the
+ * same API surface the UI calls and stores everything in localStorage, so the
+ * app runs by simply opening index.html.
+ *
+ * Nothing here is a security boundary: data lives in this browser profile and
+ * anyone with access to the profile can read it. Password hashes exist so a
+ * casual visitor cannot open someone else's list, not to protect against a
+ * determined attacker with access to the machine.
+ */
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------ constants */
+
+  const USERS_KEY = 'taskline.users.v1';
+  const SESSION_KEY = 'taskline.session.v1';
+  const TEAMS_KEY = 'taskline.teams.v1';
+  const personalKey = (userId) => `taskline.personal.v1.${userId}`;
+  const teamKey = (teamId) => `taskline.team.v1.${teamId}`;
+
+  const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+  const RESET_TTL_MS = 15 * 60 * 1000;
+  const CODE_TTL_MS = 15 * 60 * 1000;
+  const PBKDF2_ITERATIONS = 240000;
+  const MAX_LOGIN_FAILURES = 8;
+  const LOGIN_FAILURE_WINDOW_MS = 10 * 60 * 1000;
+  const MAX_TASKS_PER_LIST = 10000;
+
+  const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  const TEAM_ID_RE = /^team_[a-f0-9]{32}$/;
+  const TASK_ID_RE = /^[A-Za-z0-9_-]{1,80}$/;
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  const USER_ID_RE = /^[a-f0-9]{32}$/;
+
+  const TASK_STATUSES = new Set(['todo', 'inprogress', 'hold', 'complete']);
+  const TASK_PRIORITIES = new Set(['high', 'medium', 'low']);
+
+  /* --------------------------------------------------------------- errors */
+
+  class ApiError extends Error {
+    constructor(message, status, code, extra) {
+      super(message);
+      this.name = 'ApiError';
+      this.status = status;
+      this.code = code;
+      this.data = Object.assign({}, extra || {});
+    }
+  }
+
+  /* ---------------------------------------------------------------- bytes */
+
+  function randomBytes(length) {
+    const bytes = new Uint8Array(length);
+    window.crypto.getRandomValues(bytes);
+    return bytes;
+  }
+
+  function toHex(bytes) {
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  function randomHex(byteCount) {
+    return toHex(randomBytes(byteCount));
+  }
+
+  function toBase64(bytes) {
+    let binary = '';
+    for (let index = 0; index < bytes.length; index += 1) {
+      binary += String.fromCharCode(bytes[index]);
+    }
+    return btoa(binary);
+  }
+
+  function fromBase64(value) {
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return bytes;
+  }
+
+  function concatBytes(left, right) {
+    const merged = new Uint8Array(left.length + right.length);
+    merged.set(left);
+    merged.set(right, left.length);
+    return merged;
+  }
+
+  function timingSafeEqual(left, right) {
+    if (left.length !== right.length) return false;
+    let difference = 0;
+    for (let index = 0; index < left.length; index += 1) {
+      difference |= left[index] ^ right[index];
+    }
+    return difference === 0;
+  }
+
+  /* --------------------------------------------------------------- sha-256 */
+
+  // Fallback for browsers or origins without Web Crypto (for example a plain
+  // http:// page on a LAN address). Slow but correct.
+  const SHA256_K = new Uint32Array([
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+  ]);
+
+  function rotateRight(value, bits) {
+    return (value >>> bits) | (value << (32 - bits));
+  }
+
+  function sha256(bytes) {
+    const length = bytes.length;
+    const bitLength = length * 8;
+    const paddedLength = (((length + 8) >> 6) + 1) << 6;
+    const padded = new Uint8Array(paddedLength);
+    padded.set(bytes);
+    padded[length] = 0x80;
+
+    const view = new DataView(padded.buffer);
+    view.setUint32(paddedLength - 8, Math.floor(bitLength / 0x100000000));
+    view.setUint32(paddedLength - 4, bitLength >>> 0);
+
+    const hash = new Uint32Array([
+      0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+      0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+    ]);
+    const schedule = new Uint32Array(64);
+
+    for (let offset = 0; offset < paddedLength; offset += 64) {
+      for (let index = 0; index < 16; index += 1) {
+        schedule[index] = view.getUint32(offset + index * 4);
+      }
+      for (let index = 16; index < 64; index += 1) {
+        const s0 = rotateRight(schedule[index - 15], 7)
+          ^ rotateRight(schedule[index - 15], 18)
+          ^ (schedule[index - 15] >>> 3);
+        const s1 = rotateRight(schedule[index - 2], 17)
+          ^ rotateRight(schedule[index - 2], 19)
+          ^ (schedule[index - 2] >>> 10);
+        schedule[index] = (schedule[index - 16] + s0 + schedule[index - 7] + s1) >>> 0;
+      }
+
+      let a = hash[0];
+      let b = hash[1];
+      let c = hash[2];
+      let d = hash[3];
+      let e = hash[4];
+      let f = hash[5];
+      let g = hash[6];
+      let h = hash[7];
+
+      for (let index = 0; index < 64; index += 1) {
+        const sigma1 = rotateRight(e, 6) ^ rotateRight(e, 11) ^ rotateRight(e, 25);
+        const choose = (e & f) ^ (~e & g);
+        const temp1 = (h + sigma1 + choose + SHA256_K[index] + schedule[index]) >>> 0;
+        const sigma0 = rotateRight(a, 2) ^ rotateRight(a, 13) ^ rotateRight(a, 22);
+        const majority = (a & b) ^ (a & c) ^ (b & c);
+        const temp2 = (sigma0 + majority) >>> 0;
+
+        h = g;
+        g = f;
+        f = e;
+        e = (d + temp1) >>> 0;
+        d = c;
+        c = b;
+        b = a;
+        a = (temp1 + temp2) >>> 0;
+      }
+
+      hash[0] = (hash[0] + a) >>> 0;
+      hash[1] = (hash[1] + b) >>> 0;
+      hash[2] = (hash[2] + c) >>> 0;
+      hash[3] = (hash[3] + d) >>> 0;
+      hash[4] = (hash[4] + e) >>> 0;
+      hash[5] = (hash[5] + f) >>> 0;
+      hash[6] = (hash[6] + g) >>> 0;
+      hash[7] = (hash[7] + h) >>> 0;
+    }
+
+    const digest = new Uint8Array(32);
+    const digestView = new DataView(digest.buffer);
+    for (let index = 0; index < 8; index += 1) {
+      digestView.setUint32(index * 4, hash[index]);
+    }
+    return digest;
+  }
+
+  function hmacSha256(keyBytes, messageBytes) {
+    const key = keyBytes.length > 64 ? sha256(keyBytes) : keyBytes;
+    const block = new Uint8Array(64);
+    block.set(key);
+    const inner = new Uint8Array(64);
+    const outer = new Uint8Array(64);
+    for (let index = 0; index < 64; index += 1) {
+      inner[index] = block[index] ^ 0x36;
+      outer[index] = block[index] ^ 0x5c;
+    }
+    return sha256(concatBytes(outer, sha256(concatBytes(inner, messageBytes))));
+  }
+
+  function pbkdf2Fallback(password, salt, iterations) {
+    const passwordBytes = new TextEncoder().encode(password);
+    const firstBlock = concatBytes(salt, new Uint8Array([0, 0, 0, 1]));
+    let block = hmacSha256(passwordBytes, firstBlock);
+    const output = block.slice();
+    for (let round = 1; round < iterations; round += 1) {
+      block = hmacSha256(passwordBytes, block);
+      for (let index = 0; index < output.length; index += 1) {
+        output[index] ^= block[index];
+      }
+    }
+    return output;
+  }
+
+  async function pbkdf2(password, salt, iterations) {
+    const subtle = !window.TasklineForceFallback && window.crypto && window.crypto.subtle;
+    if (subtle) {
+      const key = await subtle.importKey(
+        'raw',
+        new TextEncoder().encode(password),
+        'PBKDF2',
+        false,
+        ['deriveBits'],
+      );
+      const bits = await subtle.deriveBits(
+        { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
+        key,
+        256,
+      );
+      return new Uint8Array(bits);
+    }
+    return pbkdf2Fallback(password, salt, iterations);
+  }
+
+  async function hashSecret(secret) {
+    const salt = randomBytes(16);
+    const digest = await pbkdf2(secret, salt, PBKDF2_ITERATIONS);
+    return `pbkdf2_sha256$${PBKDF2_ITERATIONS}$${toBase64(salt)}$${toBase64(digest)}`;
+  }
+
+  async function verifySecret(secret, encoded) {
+    try {
+      const parts = String(encoded || '').split('$');
+      if (parts.length !== 4 || parts[0] !== 'pbkdf2_sha256') return false;
+      const iterations = Number(parts[1]);
+      if (!Number.isFinite(iterations) || iterations < 1) return false;
+      const salt = fromBase64(parts[2]);
+      const expected = fromBase64(parts[3]);
+      const actual = await pbkdf2(secret, salt, iterations);
+      return timingSafeEqual(actual, expected);
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /* -------------------------------------------------------------- storage */
+
+  function readJson(key, fallback) {
+    let raw;
+    try {
+      raw = localStorage.getItem(key);
+    } catch (error) {
+      throw new ApiError('This browser is blocking local storage.', 500, 'storage_error');
+    }
+    if (raw === null || raw === undefined || raw === '') return fallback;
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      throw new ApiError(`${key} contains invalid JSON.`, 500, 'storage_error');
+    }
+  }
+
+  function writeJson(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      throw new ApiError(
+        'This browser is out of storage space, so the change was not saved.',
+        507,
+        'storage_error',
+      );
+    }
+  }
+
+  /* ----------------------------------------------------------- validation */
+
+  function normalizeEmail(value) {
+    return String(value === undefined || value === null ? '' : value).trim().toLowerCase();
+  }
+
+  function normalizeAnswer(value) {
+    return String(value === undefined || value === null ? '' : value)
+      .trim()
+      .split(/\s+/)
+      .join(' ')
+      .toLowerCase();
+  }
+
+  function normalizeName(value) {
+    return String(value === undefined || value === null ? '' : value).trim().split(/\s+/).join(' ');
+  }
+
+  function validateName(name, label) {
+    const wording = label || 'Your name';
+    if (name.length < 2) {
+      throw new ApiError(`Enter ${wording.toLowerCase()} (at least 2 characters).`, 400, 'invalid_name');
+    }
+    if (name.length > 80) {
+      throw new ApiError(`${wording} must be 80 characters or fewer.`, 400, 'invalid_name');
+    }
+  }
+
+  function validateEmail(email) {
+    if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
+      throw new ApiError('Enter a valid email address.', 400, 'invalid_email');
+    }
+  }
+
+  function validatePassword(password) {
+    if (typeof password !== 'string' || password.length < 8) {
+      throw new ApiError('Password must be at least 8 characters.', 400, 'weak_password');
+    }
+    if (password.length > 200) {
+      throw new ApiError('Password must be 200 characters or fewer.', 400, 'weak_password');
+    }
+  }
+
+  function validateMaidenName(answer) {
+    if (answer.length < 2) {
+      throw new ApiError("Enter your mother's maiden name (at least 2 characters).", 400, 'invalid_maiden');
+    }
+    if (answer.length > 80) {
+      throw new ApiError("Mother's maiden name must be 80 characters or fewer.", 400, 'invalid_maiden');
+    }
+  }
+
+  /* ---------------------------------------------------------------- users */
+
+  function loadUsers() {
+    const users = readJson(USERS_KEY, []);
+    if (!Array.isArray(users)) {
+      throw new ApiError('Stored accounts are corrupted.', 500, 'storage_error');
+    }
+    return users;
+  }
+
+  function saveUsers(users) {
+    writeJson(USERS_KEY, users);
+  }
+
+  function publicName(user) {
+    if (!user) return '';
+    return user.name || String(user.email || '').split('@')[0];
+  }
+
+  function publicUser(user) {
+    if (!user) return null;
+    return {
+      id: user.id,
+      name: publicName(user),
+      email: user.email,
+      createdAt: user.createdAt,
+      passwordChangedAt: user.passwordChangedAt,
+    };
+  }
+
+  function findUserByEmail(email) {
+    const wanted = normalizeEmail(email);
+    return loadUsers().find((user) => user.email === wanted) || null;
+  }
+
+  function findUserById(userId) {
+    return loadUsers().find((user) => user.id === userId) || null;
+  }
+
+  async function createUser(name, email, password, maidenName) {
+    const cleanEmail = normalizeEmail(email);
+    const displayName = normalizeName(name);
+    const answer = normalizeAnswer(maidenName);
+
+    validateName(displayName);
+    validateEmail(cleanEmail);
+    validatePassword(password);
+    validateMaidenName(answer);
+
+    const users = loadUsers();
+    if (users.some((user) => user.email === cleanEmail)) {
+      throw new ApiError('An account with that email already exists.', 409, 'email_taken');
+    }
+
+    const now = new Date().toISOString();
+    const user = {
+      id: randomHex(16),
+      name: displayName,
+      email: cleanEmail,
+      passwordHash: await hashSecret(password),
+      maidenHash: await hashSecret(answer),
+      createdAt: now,
+      updatedAt: now,
+      passwordChangedAt: now,
+      lastLoginAt: now,
+    };
+    users.push(user);
+    saveUsers(users);
+    return user;
+  }
+
+  async function checkMaidenName(user, answer) {
+    return verifySecret(normalizeAnswer(answer), user.maidenHash || '');
+  }
+
+  async function updatePassword(userId, newPassword) {
+    validatePassword(newPassword);
+
+    const users = loadUsers();
+    const user = users.find((item) => item.id === userId);
+    if (!user) throw new ApiError('Account not found.', 404, 'not_found');
+
+    if (await verifySecret(newPassword, user.passwordHash || '')) {
+      throw new ApiError('That is your current password. Enter a different password.', 400, 'same_password');
+    }
+
+    user.passwordHash = await hashSecret(newPassword);
+    user.passwordChangedAt = new Date().toISOString();
+    user.updatedAt = user.passwordChangedAt;
+    saveUsers(users);
+    revokeUserSessions(userId);
+  }
+
+  function markLogin(userId) {
+    const users = loadUsers();
+    const user = users.find((item) => item.id === userId);
+    if (!user) return;
+    user.lastLoginAt = new Date().toISOString();
+    saveUsers(users);
+  }
+
+  /* ------------------------------------------------------------- sessions */
+
+  function loadSession() {
+    const session = readJson(SESSION_KEY, null);
+    if (!session || typeof session !== 'object') return null;
+    if (typeof session.token !== 'string' || typeof session.userId !== 'string') return null;
+    if (typeof session.expiresAt !== 'number' || session.expiresAt <= Date.now()) {
+      clearSession();
+      return null;
+    }
+    return session;
+  }
+
+  function saveSession(session) {
+    writeJson(SESSION_KEY, session);
+  }
+
+  function clearSession() {
+    try {
+      localStorage.removeItem(SESSION_KEY);
+    } catch (error) {
+      /* ignore */
+    }
+  }
+
+  function createSession(userId) {
+    const session = {
+      token: randomHex(24),
+      userId,
+      expiresAt: Date.now() + SESSION_TTL_MS,
+    };
+    saveSession(session);
+    return session;
+  }
+
+  function deleteSession() {
+    clearSession();
+  }
+
+  function revokeUserSessions(userId) {
+    const session = loadSession();
+    if (session && session.userId === userId) clearSession();
+  }
+
+  function currentUser() {
+    const session = loadSession();
+    if (!session) return null;
+    const user = findUserById(session.userId);
+    if (!user) {
+      clearSession();
+      return null;
+    }
+    return user;
+  }
+
+  function requireUser() {
+    const user = currentUser();
+    if (!user) {
+      throw new ApiError('Please sign in to continue.', 401, 'unauthorized');
+    }
+    return user;
+  }
+
+  /* ------------------------------------------------- login throttling */
+
+  const loginFailures = new Map();
+
+  function checkLoginAllowed(email) {
+    const entry = loginFailures.get(email);
+    if (!entry) return;
+    if (Date.now() - entry.firstAt > LOGIN_FAILURE_WINDOW_MS) {
+      loginFailures.delete(email);
+      return;
+    }
+    if (entry.count >= MAX_LOGIN_FAILURES) {
+      const minutes = Math.max(1, Math.ceil((LOGIN_FAILURE_WINDOW_MS - (Date.now() - entry.firstAt)) / 60000));
+      throw new ApiError(
+        `Too many sign-in attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
+        429,
+        'too_many_attempts',
+      );
+    }
+  }
+
+  function recordLoginFailure(email) {
+    const entry = loginFailures.get(email);
+    if (!entry || Date.now() - entry.firstAt > LOGIN_FAILURE_WINDOW_MS) {
+      loginFailures.set(email, { count: 1, firstAt: Date.now() });
+      return;
+    }
+    entry.count += 1;
+  }
+
+  function clearLoginFailures(email) {
+    loginFailures.delete(email);
+  }
+
+  /* ----------------------------------------------------------- challenges */
+
+  const resetTokens = new Map();
+  const emailCodes = new Map();
+  const outbox = new Map();
+
+  function pruneChallenges() {
+    const now = Date.now();
+    for (const [token, entry] of resetTokens) {
+      if (entry.expiresAt <= now) resetTokens.delete(token);
+    }
+    for (const [email, entry] of emailCodes) {
+      if (entry.expiresAt <= now) emailCodes.delete(email);
+    }
+  }
+
+  function createResetToken(email) {
+    pruneChallenges();
+    const token = randomHex(24);
+    resetTokens.set(token, { email: normalizeEmail(email), expiresAt: Date.now() + RESET_TTL_MS });
+    return token;
+  }
+
+  function consumeResetToken(token) {
+    pruneChallenges();
+    const entry = resetTokens.get(token);
+    if (!entry) {
+      throw new ApiError('That verification link has expired. Request a new one.', 400, 'invalid_token');
+    }
+    resetTokens.delete(token);
+    return entry.email;
+  }
+
+  function createEmailCode(email) {
+    pruneChallenges();
+    const code = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+    emailCodes.set(normalizeEmail(email), {
+      hash: null,
+      code,
+      expiresAt: Date.now() + CODE_TTL_MS,
+      attempts: 0,
+    });
+    return code;
+  }
+
+  async function verifyEmailCode(email, code) {
+    pruneChallenges();
+    const key = normalizeEmail(email);
+    const entry = emailCodes.get(key);
+    if (!entry) {
+      throw new ApiError('No active verification code. Request a new one.', 400, 'invalid_code');
+    }
+    entry.attempts += 1;
+    if (entry.attempts > 5) {
+      emailCodes.delete(key);
+      throw new ApiError('Too many incorrect codes. Request a new one.', 429, 'too_many_attempts');
+    }
+    if (String(code || '').trim() !== entry.code) {
+      throw new ApiError('That verification code is not correct.', 400, 'invalid_code');
+    }
+    emailCodes.delete(key);
+  }
+
+  function clearChallenges(email) {
+    const key = normalizeEmail(email);
+    emailCodes.delete(key);
+    for (const [token, entry] of resetTokens) {
+      if (entry.email === key) resetTokens.delete(token);
+    }
+  }
+
+  // The app has no mail server, so the code is shown in the UI instead.
+  function deliverCode(email, code) {
+    outbox.set(normalizeEmail(email), {
+      to: normalizeEmail(email),
+      subject: 'Your Taskline password reset code',
+      body:
+        'Use this code to reset your Taskline password:\n\n'
+        + `    ${code}\n\n`
+        + 'The code expires in 15 minutes. This app runs without a server, so the '
+        + 'message is shown here instead of being emailed.\n\n— Taskline',
+      code,
+      createdAt: new Date().toISOString(),
+    });
+    return { delivery: 'outbox' };
+  }
+
+  function latestMail(email) {
+    const message = outbox.get(normalizeEmail(email));
+    if (!message) {
+      throw new ApiError('No recovery message was generated for that address.', 404, 'not_found');
+    }
+    return message;
+  }
+
+  /* ---------------------------------------------------------------- teams */
+
+  function loadTeams() {
+    const teams = readJson(TEAMS_KEY, []);
+    if (!Array.isArray(teams)) {
+      throw new ApiError('Stored teams are corrupted.', 500, 'storage_error');
+    }
+    return teams;
+  }
+
+  function saveTeams(teams) {
+    writeJson(TEAMS_KEY, teams);
+  }
+
+  function teamsForUser(userId) {
+    return loadTeams().filter((team) => Array.isArray(team.memberIds) && team.memberIds.includes(userId));
+  }
+
+  function teamPublic(team, viewerId) {
+    const users = loadUsers();
+    const byId = new Map(users.map((user) => [user.id, user]));
+    const members = [];
+    for (const memberId of team.memberIds || []) {
+      const member = byId.get(memberId);
+      if (!member) continue;
+      members.push({ id: memberId, name: publicName(member), email: member.email || '' });
+    }
+    const owner = byId.get(team.ownerId);
+    return {
+      id: team.id,
+      name: team.name || '',
+      ownerId: team.ownerId,
+      ownerName: owner ? publicName(owner) : 'Unknown',
+      isOwner: team.ownerId === viewerId,
+      members,
+      createdAt: team.createdAt,
+      updatedAt: team.updatedAt,
+    };
+  }
+
+  function getTeamForMember(teamId, userId) {
+    if (!TEAM_ID_RE.test(String(teamId || ''))) {
+      throw new ApiError('Team not found.', 404, 'team_not_found');
+    }
+    const team = loadTeams().find((item) => item.id === teamId);
+    if (!team || !(team.memberIds || []).includes(userId)) {
+      throw new ApiError('Team not found.', 404, 'team_not_found');
+    }
+    return team;
+  }
+
+  function normalizeEmailList(value) {
+    let parts = [];
+    if (typeof value === 'string') {
+      parts = value.split(/[,;\s]+/);
+    } else if (Array.isArray(value)) {
+      parts = value.map((item) => String(item));
+    }
+    const emails = [];
+    for (const part of parts) {
+      const email = normalizeEmail(part);
+      if (email && !emails.includes(email)) emails.push(email);
+    }
+    return emails;
+  }
+
+  function resolveMemberIds(emails, owner) {
+    const users = loadUsers();
+    const byEmail = new Map(users.map((user) => [user.email, user]));
+    const memberIds = [owner.id];
+    const unknown = [];
+    for (const email of emails) {
+      const member = byEmail.get(email);
+      if (!member) {
+        unknown.push(email);
+        continue;
+      }
+      if (!memberIds.includes(member.id)) memberIds.push(member.id);
+    }
+    if (unknown.length) {
+      throw new ApiError(
+        `No account was found for: ${unknown.join(', ')}`,
+        404,
+        'unknown_members',
+        { unknown },
+      );
+    }
+    return memberIds;
+  }
+
+  function createTeam(owner, name, memberEmails) {
+    const teamName = normalizeName(name);
+    validateName(teamName, 'Team name');
+    const emails = normalizeEmailList(memberEmails);
+    const memberIds = resolveMemberIds(emails, owner);
+    const teams = loadTeams();
+    const now = new Date().toISOString();
+    const team = {
+      id: `team_${randomHex(16)}`,
+      name: teamName,
+      ownerId: owner.id,
+      memberIds,
+      createdAt: now,
+      updatedAt: now,
+    };
+    teams.push(team);
+    saveTeams(teams);
+    return teamPublic(team, owner.id);
+  }
+
+  function updateTeam(teamId, user, payload) {
+    const teams = loadTeams();
+    const team = teams.find((item) => item.id === teamId);
+    if (!team) throw new ApiError('Team not found.', 404, 'team_not_found');
+    if (team.ownerId !== user.id) {
+      throw new ApiError('Only the team owner can change this team.', 403, 'not_team_owner');
+    }
+
+    let memberIds = (team.memberIds || []).slice();
+    let changed = false;
+
+    if (payload.name !== undefined && payload.name !== null) {
+      const teamName = normalizeName(payload.name);
+      validateName(teamName, 'Team name');
+      if (teamName !== team.name) {
+        team.name = teamName;
+        changed = true;
+      }
+    }
+
+    const additions = normalizeEmailList(payload.addEmails);
+    if (additions.length) {
+      for (const memberId of resolveMemberIds(additions, user)) {
+        if (!memberIds.includes(memberId)) {
+          memberIds.push(memberId);
+          changed = true;
+        }
+      }
+    }
+
+    const removals = normalizeEmailList(payload.removeEmails);
+    if (removals.length) {
+      const users = loadUsers();
+      const byEmail = new Map(users.map((item) => [item.email, item]));
+      const unknown = removals.filter((email) => !byEmail.has(email));
+      if (unknown.length) {
+        throw new ApiError(
+          `No account was found for: ${unknown.join(', ')}`,
+          404,
+          'unknown_members',
+          { unknown },
+        );
+      }
+      const removeIds = new Set(removals.map((email) => byEmail.get(email).id));
+      if (removeIds.has(team.ownerId)) {
+        throw new ApiError('The team owner cannot be removed.', 400, 'cannot_remove_owner');
+      }
+      for (const memberId of memberIds.slice()) {
+        if (removeIds.has(memberId)) {
+          memberIds = memberIds.filter((item) => item !== memberId);
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      team.memberIds = memberIds;
+      team.updatedAt = new Date().toISOString();
+      saveTeams(teams);
+    }
+    return teamPublic(team, user.id);
+  }
+
+  function deleteTeam(teamId, user) {
+    const teams = loadTeams();
+    const team = teams.find((item) => item.id === teamId);
+    if (!team) throw new ApiError('Team not found.', 404, 'team_not_found');
+    if (team.ownerId !== user.id) {
+      throw new ApiError('Only the team owner can delete this team.', 403, 'not_team_owner');
+    }
+    saveTeams(teams.filter((item) => item.id !== teamId));
+    try {
+      localStorage.removeItem(teamKey(teamId));
+    } catch (error) {
+      /* ignore */
+    }
+  }
+
+  /* ---------------------------------------------------------------- tasks */
+
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function readTaskList(key) {
+    const list = readJson(key, []);
+    return Array.isArray(list) ? list : [];
+  }
+
+  function writeTaskList(key, tasks) {
+    writeJson(key, tasks);
+  }
+
+  function cleanTask(raw, options) {
+    const existing = options.existing || null;
+    const merged = Object.assign({}, existing || {}, raw && typeof raw === 'object' ? raw : {});
+
+    let title = String(merged.title || '').trim();
+    if (!title) throw new ApiError('Task title is required.', 400, 'invalid_task');
+    title = title.slice(0, 140);
+
+    const notes = typeof merged.notes === 'string' ? merged.notes.slice(0, 500) : '';
+
+    const date = typeof merged.date === 'string' && DATE_RE.test(merged.date) ? merged.date : todayStr();
+    const status = TASK_STATUSES.has(merged.status) ? merged.status : 'todo';
+    const priority = TASK_PRIORITIES.has(merged.priority) ? merged.priority : 'medium';
+
+    const archived = Boolean(merged.archived) || status === 'complete';
+    let archivedAt = archived ? merged.archivedAt : null;
+    if (archived && typeof archivedAt !== 'string') archivedAt = new Date().toISOString();
+
+    let taskId = merged.id;
+    if (!(typeof taskId === 'string' && TASK_ID_RE.test(taskId))) {
+      taskId = existing ? existing.id : randomHex(16);
+    }
+
+    let createdAt = existing ? existing.createdAt : merged.createdAt;
+    if (typeof createdAt !== 'string') createdAt = new Date().toISOString();
+
+    let assigneeId = options.scope === 'team' ? merged.assigneeId : null;
+    if (assigneeId === '' || assigneeId === undefined || assigneeId === null) {
+      assigneeId = null;
+    } else if (typeof assigneeId !== 'string') {
+      throw new ApiError('Choose a member of this team as the assignee.', 400, 'invalid_assignee');
+    } else if (
+      options.memberIds
+      && !options.memberIds.has(assigneeId)
+      && !(existing && assigneeId === existing.assigneeId)
+    ) {
+      throw new ApiError('Choose a member of this team as the assignee.', 400, 'invalid_assignee');
+    }
+
+    const createdBy = existing && existing.createdBy ? existing.createdBy : options.createdBy;
+
+    return {
+      id: taskId,
+      title,
+      notes,
+      date,
+      status,
+      priority,
+      archived,
+      archivedAt,
+      createdAt,
+      updatedAt: new Date().toISOString(),
+      scope: options.scope,
+      teamId: options.teamId,
+      assigneeId,
+      createdBy,
+    };
+  }
+
+  function publicTask(task, options) {
+    const users = loadUsers();
+    const byId = new Map(users.map((user) => [user.id, user]));
+    const assignee = byId.get(task.assigneeId);
+    const creator = byId.get(task.createdBy);
+    return Object.assign({}, task, {
+      scope: options.scope,
+      teamId: options.team ? options.team.id : null,
+      teamName: options.team ? options.team.name : null,
+      assigneeName: assignee ? publicName(assignee) : null,
+      assigneeEmail: assignee ? assignee.email : null,
+      createdByName: creator ? publicName(creator) : null,
+      canDelete: Boolean(
+        options.scope === 'personal'
+        || (options.team
+          && (options.viewerId === task.createdBy || options.viewerId === options.team.ownerId)),
+      ),
+    });
+  }
+
+  function listTasks(user) {
+    const result = [];
+    for (const task of readTaskList(personalKey(user.id))) {
+      result.push(publicTask(task, { scope: 'personal', team: null, viewerId: user.id }));
+    }
+    for (const team of teamsForUser(user.id)) {
+      for (const task of readTaskList(teamKey(team.id))) {
+        result.push(publicTask(task, { scope: 'team', team, viewerId: user.id }));
+      }
+    }
+    return result;
+  }
+
+  function createTask(user, payload) {
+    if (!payload || typeof payload !== 'object') {
+      throw new ApiError('Expected a task object.', 400, 'invalid_task');
+    }
+    const scope = payload.scope === 'team' ? 'team' : 'personal';
+
+    if (scope === 'team') {
+      const team = getTeamForMember(payload.teamId, user.id);
+      const tasks = readTaskList(teamKey(team.id));
+      if (tasks.length >= MAX_TASKS_PER_LIST) {
+        throw new ApiError('This team has too many tasks.', 413, 'too_many_tasks');
+      }
+      const task = cleanTask(payload, {
+        scope: 'team',
+        teamId: team.id,
+        createdBy: user.id,
+        memberIds: new Set(team.memberIds || []),
+      });
+      if (tasks.some((item) => item.id === task.id)) task.id = randomHex(16);
+      tasks.push(task);
+      writeTaskList(teamKey(team.id), tasks);
+      return publicTask(task, { scope: 'team', team, viewerId: user.id });
+    }
+
+    const tasks = readTaskList(personalKey(user.id));
+    if (tasks.length >= MAX_TASKS_PER_LIST) {
+      throw new ApiError('You have too many tasks.', 413, 'too_many_tasks');
+    }
+    const task = cleanTask(payload, { scope: 'personal', teamId: null, createdBy: user.id });
+    if (tasks.some((item) => item.id === task.id)) task.id = randomHex(16);
+    tasks.push(task);
+    writeTaskList(personalKey(user.id), tasks);
+    return publicTask(task, { scope: 'personal', team: null, viewerId: user.id });
+  }
+
+  function findTaskLocation(userId, taskId) {
+    const personal = readTaskList(personalKey(userId));
+    const personalIndex = personal.findIndex((task) => task.id === taskId);
+    if (personalIndex !== -1) {
+      return { scope: 'personal', team: null, tasks: personal, index: personalIndex, task: personal[personalIndex] };
+    }
+    for (const team of teamsForUser(userId)) {
+      const teamTasks = readTaskList(teamKey(team.id));
+      const index = teamTasks.findIndex((task) => task.id === taskId);
+      if (index !== -1) {
+        return { scope: 'team', team, tasks: teamTasks, index, task: teamTasks[index] };
+      }
+    }
+    throw new ApiError('Task not found.', 404, 'not_found');
+  }
+
+  function updateTask(user, taskId, payload) {
+    if (!payload || typeof payload !== 'object') {
+      throw new ApiError('Expected a task object.', 400, 'invalid_task');
+    }
+    const location = findTaskLocation(user.id, taskId);
+
+    if (location.scope === 'team') {
+      const team = location.team;
+      const updated = cleanTask(payload, {
+        scope: 'team',
+        teamId: team.id,
+        createdBy: user.id,
+        existing: location.task,
+        memberIds: new Set(team.memberIds || []),
+      });
+      location.tasks[location.index] = updated;
+      writeTaskList(teamKey(team.id), location.tasks);
+      return publicTask(updated, { scope: 'team', team, viewerId: user.id });
+    }
+
+    const updated = cleanTask(payload, {
+      scope: 'personal',
+      teamId: null,
+      createdBy: user.id,
+      existing: location.task,
+    });
+    location.tasks[location.index] = updated;
+    writeTaskList(personalKey(user.id), location.tasks);
+    return publicTask(updated, { scope: 'personal', team: null, viewerId: user.id });
+  }
+
+  function deleteTask(user, taskId) {
+    const location = findTaskLocation(user.id, taskId);
+    if (location.scope === 'team') {
+      const team = location.team;
+      if (user.id !== location.task.createdBy && user.id !== team.ownerId) {
+        throw new ApiError('Only the task creator or team owner can delete this task.', 403, 'not_allowed');
+      }
+      location.tasks.splice(location.index, 1);
+      writeTaskList(teamKey(team.id), location.tasks);
+    } else {
+      location.tasks.splice(location.index, 1);
+      writeTaskList(personalKey(user.id), location.tasks);
+    }
+    return { ok: true, id: taskId };
+  }
+
+  function replacePersonalTasks(user, tasks) {
+    if (tasks.length > MAX_TASKS_PER_LIST) {
+      throw new ApiError('Too many tasks.', 413, 'too_many_tasks');
+    }
+    const cleaned = tasks.map((task) => cleanTask(task, {
+      scope: 'personal',
+      teamId: null,
+      createdBy: user.id,
+    }));
+    writeTaskList(personalKey(user.id), cleaned);
+    return { ok: true, count: cleaned.length };
+  }
+
+  /* --------------------------------------------------------------- router */
+
+  async function handleAuth(method, path, payload) {
+    if (path === '/api/auth/me' && method === 'GET') {
+      return { ok: true, user: publicUser(currentUser()) };
+    }
+
+    if (path === '/api/auth/register' && method === 'POST') {
+      const user = await createUser(
+        payload && payload.name,
+        payload && payload.email,
+        payload && payload.password,
+        payload && payload.maidenName,
+      );
+      createSession(user.id);
+      return { ok: true, user: publicUser(user) };
+    }
+
+    if (path === '/api/auth/login' && method === 'POST') {
+      const email = normalizeEmail(payload && payload.email);
+      const password = String((payload && payload.password) || '');
+
+      checkLoginAllowed(email);
+      const user = findUserByEmail(email);
+
+      if (!user || !(await verifySecret(password, user.passwordHash || ''))) {
+        recordLoginFailure(email);
+        throw new ApiError('Email or password is incorrect.', 401, 'invalid_credentials');
+      }
+
+      clearLoginFailures(email);
+      markLogin(user.id);
+      createSession(user.id);
+      return { ok: true, user: publicUser(user) };
+    }
+
+    if (path === '/api/auth/logout' && method === 'POST') {
+      deleteSession();
+      return { ok: true };
+    }
+
+    if (path === '/api/auth/change-password' && method === 'POST') {
+      const user = requireUser();
+      const currentPassword = String((payload && payload.currentPassword) || '');
+      const newPassword = String((payload && payload.newPassword) || '');
+
+      if (!(await verifySecret(currentPassword, user.passwordHash || ''))) {
+        throw new ApiError('Your current password is not correct.', 400, 'invalid_credentials');
+      }
+
+      validatePassword(newPassword);
+      if (await verifySecret(newPassword, user.passwordHash || '')) {
+        throw new ApiError('That is your current password. Enter a different password.', 400, 'same_password');
+      }
+
+      if (!(await checkMaidenName(user, payload && payload.maidenName))) {
+        const code = createEmailCode(user.email);
+        const delivery = deliverCode(user.email, code);
+        throw new ApiError(
+          'That maiden name does not match. A verification code is shown below instead.',
+          403,
+          'maiden_mismatch',
+          {
+            recoverySent: true,
+            email: user.email,
+            delivery: delivery.delivery,
+            devMode: true,
+          },
+        );
+      }
+
+      await updatePassword(user.id, newPassword);
+      clearChallenges(user.email);
+      return { ok: true, requiresRelogin: true, message: 'Password updated. Please sign in again.' };
+    }
+
+    if (path === '/api/auth/forgot' && method === 'POST') {
+      const email = normalizeEmail(payload && payload.email);
+      const user = findUserByEmail(email);
+      if (!user) throw new ApiError('No account was found with that email.', 404, 'not_found');
+
+      if (await checkMaidenName(user, payload && payload.maidenName)) {
+        const token = createResetToken(email);
+        return {
+          ok: true,
+          verifiedBy: 'maiden',
+          resetToken: token,
+          expiresIn: Math.round(RESET_TTL_MS / 1000),
+          message: 'Maiden name verified. Choose a new password.',
+        };
+      }
+
+      const code = createEmailCode(email);
+      const delivery = deliverCode(email, code);
+      return {
+        ok: true,
+        verifiedBy: 'email',
+        email,
+        delivery: delivery.delivery,
+        devMode: true,
+        message: 'That maiden name did not match. A verification code is shown below.',
+      };
+    }
+
+    if (path === '/api/auth/reset' && method === 'POST') {
+      const email = normalizeEmail(payload && payload.email);
+      const user = findUserByEmail(email);
+      if (!user) throw new ApiError('No account was found with that email.', 404, 'not_found');
+
+      const newPassword = String((payload && payload.newPassword) || '');
+
+      // Validate before consuming the one-time code so a rejected attempt
+      // does not burn the recovery credential.
+      validatePassword(newPassword);
+      if (await verifySecret(newPassword, user.passwordHash || '')) {
+        throw new ApiError('That is your current password. Enter a different password.', 400, 'same_password');
+      }
+
+      if (payload && payload.resetToken) {
+        const tokenEmail = consumeResetToken(String(payload.resetToken));
+        if (tokenEmail !== email) {
+          throw new ApiError('That verification link is not valid for this account.', 400, 'invalid_token');
+        }
+      } else {
+        await verifyEmailCode(email, payload && payload.code);
+      }
+
+      await updatePassword(user.id, newPassword);
+      clearChallenges(email);
+      return { ok: true, requiresRelogin: true, message: 'Password updated. Please sign in again.' };
+    }
+
+    throw new ApiError('Not found.', 404, 'not_found');
+  }
+
+  function handleTasks(method, path, payload) {
+    if (path === '/api/tasks') {
+      const user = requireUser();
+      if (method === 'GET') return listTasks(user);
+      if (method === 'POST') return createTask(user, payload);
+      if (method === 'PUT') {
+        const tasks = Array.isArray(payload) ? payload : (payload && payload.tasks);
+        if (!Array.isArray(tasks)) {
+          throw new ApiError('Expected a JSON array of tasks.', 400, 'invalid_body');
+        }
+        return replacePersonalTasks(user, tasks);
+      }
+      throw new ApiError('Not found.', 404, 'not_found');
+    }
+
+    const match = /^\/api\/tasks\/([^/]+)$/.exec(path);
+    if (match) {
+      const user = requireUser();
+      const taskId = decodeURIComponent(match[1]);
+      if (method === 'PATCH') return updateTask(user, taskId, payload);
+      if (method === 'DELETE') return deleteTask(user, taskId);
+      throw new ApiError('Not found.', 404, 'not_found');
+    }
+
+    throw new ApiError('Not found.', 404, 'not_found');
+  }
+
+  function handleTeams(method, path, payload) {
+    if (path === '/api/teams') {
+      const user = requireUser();
+      if (method === 'GET') return teamsForUser(user.id).map((team) => teamPublic(team, user.id));
+      if (method === 'POST') {
+        return createTeam(user, payload && payload.name, payload && payload.memberEmails);
+      }
+      throw new ApiError('Not found.', 404, 'not_found');
+    }
+
+    const match = /^\/api\/teams\/([^/]+)$/.exec(path);
+    if (match) {
+      const user = requireUser();
+      const teamId = decodeURIComponent(match[1]);
+      if (method === 'PATCH') return updateTeam(teamId, user, payload || {});
+      if (method === 'DELETE') {
+        deleteTeam(teamId, user);
+        return { ok: true };
+      }
+      throw new ApiError('Not found.', 404, 'not_found');
+    }
+
+    throw new ApiError('Not found.', 404, 'not_found');
+  }
+
+  async function request(method, url, payload) {
+    const upperMethod = String(method || 'GET').toUpperCase();
+    let parsed;
+    try {
+      parsed = new URL(url, window.location.href);
+    } catch (error) {
+      throw new ApiError('Invalid request.', 400, 'invalid_request');
+    }
+    // On Windows, file:///C:/... resolves an absolute /api path to
+    // /C:/api/... in pathname, so strip that drive prefix.
+    let path = parsed.pathname.replace(/\/+$/, '') || '/';
+    if (/^\/[A-Za-z]:/.test(path)) path = path.slice(3) || '/';
+
+    if (path.startsWith('/api/auth/')) return handleAuth(upperMethod, path, payload);
+
+    if (path === '/api/dev/last-mail') {
+      const email = parsed.searchParams.get('email') || '';
+      const message = latestMail(email);
+      return {
+        to: message.to,
+        subject: message.subject,
+        body: message.body,
+        code: message.code,
+        createdAt: message.createdAt,
+      };
+    }
+
+    if (path === '/api/health') {
+      return {
+        ok: true,
+        storage: 'browser localStorage',
+        auth: 'local account',
+        mail: 'in-app code',
+      };
+    }
+
+    if (path === '/api/tasks' || path.startsWith('/api/tasks/')) {
+      return handleTasks(upperMethod, path, payload);
+    }
+
+    if (path === '/api/teams' || path.startsWith('/api/teams/')) {
+      return handleTeams(upperMethod, path, payload);
+    }
+
+    throw new ApiError('Not found.', 404, 'not_found');
+  }
+
+  window.TasklineBackend = {
+    request,
+    // Exposed for tests and for future import of older data.
+    hashSecret,
+    verifySecret,
+  };
+})();
+
+</script>
+  <script>
+/* =========================================================
+   Taskline — task logic
+   ========================================================= */
+
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'taskline.tasks.v1';
+  const THEME_KEY = 'taskline.theme';
+  const API_URL = '/api/tasks';
+  const TEAMS_API = '/api/teams';
+  const AUTH_API = '/api/auth';
+
+  const STATUS = {
+    todo: { label: 'Yet to start', className: 'status-todo' },
+    inprogress: { label: 'In progress', className: 'status-inprogress' },
+    hold: { label: 'On hold', className: 'status-hold' },
+    complete: { label: 'Complete', className: 'status-complete' },
+  };
+
+  const PRIORITIES = {
+    high: { label: 'High', className: 'priority-high' },
+    medium: { label: 'Medium', className: 'priority-medium' },
+    low: { label: 'Low', className: 'priority-low' },
+  };
+
+  const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+
+  const ICONS = {
+    check: '<path d="m5 12 4 4L19 6"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+    trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/>',
+    restore: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+    calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    pause: '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  };
+
+  const els = {
+    form: document.getElementById('taskForm'),
+    title: document.getElementById('taskTitle'),
+    date: document.getElementById('taskDate'),
+    status: document.getElementById('taskStatus'),
+    priority: document.getElementById('taskPriority'),
+    notes: document.getElementById('taskNotes'),
+    scopeButtons: Array.from(document.querySelectorAll('[data-scope]')),
+    teamPickerWrap: document.getElementById('teamPickerWrap'),
+    assigneePickerWrap: document.getElementById('assigneePickerWrap'),
+    taskTeam: document.getElementById('taskTeam'),
+    taskAssignee: document.getElementById('taskAssignee'),
+    composerTeamsBtn: document.getElementById('composerTeamsBtn'),
+    detailsRow: document.getElementById('detailsRow'),
+    detailsToggle: document.getElementById('detailsToggle'),
+    stats: document.getElementById('stats'),
+    taskList: document.getElementById('taskList'),
+    tabs: Array.from(document.querySelectorAll('.tab')),
+    activeCount: document.getElementById('activeCount'),
+    archivedCount: document.getElementById('archivedCount'),
+    search: document.getElementById('search'),
+    statusFilter: document.getElementById('statusFilter'),
+    statusFilterWrap: document.getElementById('statusFilterWrap'),
+    scopeFilter: document.getElementById('scopeFilter'),
+    themeToggle: document.getElementById('themeToggle'),
+    editDialog: document.getElementById('editDialog'),
+    editForm: document.getElementById('editForm'),
+    editTitle: document.getElementById('editTitle'),
+    editDate: document.getElementById('editDate'),
+    editStatus: document.getElementById('editStatus'),
+    editPriority: document.getElementById('editPriority'),
+    editNotes: document.getElementById('editNotes'),
+    editSharing: document.getElementById('editSharing'),
+    editTeamName: document.getElementById('editTeamName'),
+    editAssignee: document.getElementById('editAssignee'),
+    editError: document.getElementById('editError'),
+    confirmDialog: document.getElementById('confirmDialog'),
+    confirmTitle: document.getElementById('confirmTitle'),
+    confirmMessage: document.getElementById('confirmMessage'),
+    confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
+    toast: document.getElementById('toast'),
+    toastMessage: document.getElementById('toastMessage'),
+    toastAction: document.getElementById('toastAction'),
+    toastClose: document.getElementById('toastClose'),
+    storageLine: document.getElementById('storageLine'),
+    storageText: document.getElementById('storageText'),
+    exportBtn: document.getElementById('exportBtn'),
+    importBtn: document.getElementById('importBtn'),
+    importFile: document.getElementById('importFile'),
+    authView: document.getElementById('authView'),
+    appShell: document.getElementById('appShell'),
+    authTabs: Array.from(document.querySelectorAll('[data-auth-tab]')),
+    authNotice: document.getElementById('authNotice'),
+    loginForm: document.getElementById('loginForm'),
+    loginEmail: document.getElementById('loginEmail'),
+    loginPassword: document.getElementById('loginPassword'),
+    loginError: document.getElementById('loginError'),
+    forgotBtn: document.getElementById('forgotBtn'),
+    registerForm: document.getElementById('registerForm'),
+    registerName: document.getElementById('registerName'),
+    registerEmail: document.getElementById('registerEmail'),
+    registerPassword: document.getElementById('registerPassword'),
+    registerConfirm: document.getElementById('registerConfirm'),
+    registerMaiden: document.getElementById('registerMaiden'),
+    registerError: document.getElementById('registerError'),
+    account: document.getElementById('account'),
+    accountBtn: document.getElementById('accountBtn'),
+    accountMenu: document.getElementById('accountMenu'),
+    accountInitial: document.getElementById('accountInitial'),
+    accountEmail: document.getElementById('accountEmail'),
+    accountMenuName: document.getElementById('accountMenuName'),
+    accountMenuEmail: document.getElementById('accountMenuEmail'),
+    manageTeamsBtn: document.getElementById('manageTeamsBtn'),
+    changePasswordBtn: document.getElementById('changePasswordBtn'),
+    signOutBtn: document.getElementById('signOutBtn'),
+    passwordDialog: document.getElementById('passwordDialog'),
+    passwordForm: document.getElementById('passwordForm'),
+    pwCurrent: document.getElementById('pwCurrent'),
+    pwMaiden: document.getElementById('pwMaiden'),
+    pwNew: document.getElementById('pwNew'),
+    pwConfirm: document.getElementById('pwConfirm'),
+    pwError: document.getElementById('pwError'),
+    resetDialog: document.getElementById('resetDialog'),
+    resetForm: document.getElementById('resetForm'),
+    resetStepOne: document.getElementById('resetStepOne'),
+    resetStepTwo: document.getElementById('resetStepTwo'),
+    resetEmail: document.getElementById('resetEmail'),
+    resetMaiden: document.getElementById('resetMaiden'),
+    resetErrorOne: document.getElementById('resetErrorOne'),
+    resetErrorTwo: document.getElementById('resetErrorTwo'),
+    resetNote: document.getElementById('resetNote'),
+    resetCodeWrap: document.getElementById('resetCodeWrap'),
+    resetCode: document.getElementById('resetCode'),
+    viewMailBtn: document.getElementById('viewMailBtn'),
+    resetMailPreview: document.getElementById('resetMailPreview'),
+    resetNew: document.getElementById('resetNew'),
+    resetConfirm: document.getElementById('resetConfirm'),
+    resetFootOne: document.getElementById('resetFootOne'),
+    resetFootTwo: document.getElementById('resetFootTwo'),
+    resetBackBtn: document.getElementById('resetBackBtn'),
+    teamsDialog: document.getElementById('teamsDialog'),
+    teamCreateForm: document.getElementById('teamCreateForm'),
+    teamName: document.getElementById('teamName'),
+    teamMembers: document.getElementById('teamMembers'),
+    teamCreateError: document.getElementById('teamCreateError'),
+    teamList: document.getElementById('teamList'),
+  };
+
+  let tasks = [];
+  let teams = [];
+  let currentUser = null;
+  let authTab = 'login';
+  let storageMode = 'local';
+  let saveChain = Promise.resolve();
+  let saveSequence = 0;
+  let view = 'tasks';
+  let searchQuery = '';
+  let statusFilter = 'all';
+  let scopeFilter = 'all';
+  let taskScope = 'personal';
+  let editingId = null;
+  let confirmAction = null;
+  let toastTimer = null;
+  let toastUndo = null;
+  let resetState = { step: 1, email: '', resetToken: null, devMode: false };
+
+  /* ---------------- Helpers ---------------- */
+
+  function uid() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      try {
+        return window.crypto.randomUUID();
+      } catch (error) {
+        /* fall through */
+      }
+    }
+    return 't_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+  }
+
+  function localDateStr(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function parseDateStr(value) {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  function addDays(dateStr, amount) {
+    const date = parseDateStr(dateStr);
+    date.setDate(date.getDate() + amount);
+    return localDateStr(date);
+  }
+
+  function isCurrentYear(dateStr) {
+    return parseDateStr(dateStr).getFullYear() === new Date().getFullYear();
+  }
+
+  function formatFullDate(dateStr) {
+    const options = { weekday: 'short', month: 'short', day: 'numeric' };
+    if (!isCurrentYear(dateStr)) options.year = 'numeric';
+    return parseDateStr(dateStr).toLocaleDateString(undefined, options);
+  }
+
+  function formatGroupDate(dateStr) {
+    const options = { weekday: 'long', month: 'long', day: 'numeric' };
+    if (!isCurrentYear(dateStr)) options.year = 'numeric';
+    return parseDateStr(dateStr).toLocaleDateString(undefined, options);
+  }
+
+  function groupTitle(dateStr) {
+    const today = localDateStr();
+    if (dateStr === today) return 'Today';
+    if (dateStr === addDays(today, 1)) return 'Tomorrow';
+    if (dateStr === addDays(today, -1)) return 'Yesterday';
+    return parseDateStr(dateStr).toLocaleDateString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
+  function relativeTime(iso) {
+    if (!iso) return '';
+    const time = new Date(iso).getTime();
+    if (Number.isNaN(time)) return '';
+    const minutes = Math.round((Date.now() - time) / 60000);
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.round(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[character]));
+  }
+
+  function truncate(text, max) {
+    return text.length > max ? text.slice(0, max - 1) + '…' : text;
+  }
+
+  function icon(name, size = 16) {
+    return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+  }
+
+  function statusOptions(selected) {
+    return Object.entries(STATUS)
+      .map(([value, meta]) => `<option value="${value}"${value === selected ? ' selected' : ''}>${meta.label}</option>`)
+      .join('');
+  }
+
+  function priorityOptions(selected) {
+    return Object.entries(PRIORITIES)
+      .map(([value, meta]) => `<option value="${value}"${value === selected ? ' selected' : ''}>${meta.label}</option>`)
+      .join('');
+  }
+
+  /* ---------------- Storage ---------------- */
+
+  function normalizeTask(raw) {
+    const now = new Date().toISOString();
+    const status = STATUS[raw.status] ? raw.status : 'todo';
+    const archived = Boolean(raw.archived) || status === 'complete';
+    const scope = raw.scope === 'team' ? 'team' : 'personal';
+    return {
+      id: typeof raw.id === 'string' && raw.id ? raw.id : uid(),
+      title: String(raw.title || '').slice(0, 140),
+      notes: typeof raw.notes === 'string' ? raw.notes.slice(0, 500) : '',
+      date: /^\d{4}-\d{2}-\d{2}$/.test(raw.date) ? raw.date : localDateStr(),
+      status,
+      priority: PRIORITIES[raw.priority] ? raw.priority : 'medium',
+      archived,
+      archivedAt: archived ? (raw.archivedAt || raw.updatedAt || now) : null,
+      createdAt: raw.createdAt || now,
+      updatedAt: raw.updatedAt || raw.createdAt || now,
+      scope,
+      teamId: scope === 'team' ? (raw.teamId || null) : null,
+      teamName: scope === 'team' ? (raw.teamName || '') : '',
+      assigneeId: scope === 'team' ? (raw.assigneeId || null) : null,
+      assigneeName: scope === 'team' ? (raw.assigneeName || '') : '',
+      assigneeEmail: scope === 'team' ? (raw.assigneeEmail || '') : '',
+      createdBy: raw.createdBy || null,
+      createdByName: raw.createdByName || '',
+      canDelete: raw.canDelete !== false,
+    };
+  }
+
+  function cacheKey() {
+    return currentUser ? `${STORAGE_KEY}.${currentUser.id}` : null;
+  }
+
+  function loadCachedTasks() {
+    const key = cacheKey();
+    if (!key) return [];
+    try {
+      const stored = localStorage.getItem(key);
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .filter((task) => task && typeof task.title === 'string')
+        .map(normalizeTask);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function cacheTasks() {
+    const key = cacheKey();
+    if (!key) return;
+    try {
+      localStorage.setItem(key, JSON.stringify(tasks));
+    } catch (error) {
+      /* Ignore quota errors; the account store still holds the task. */
+    }
+  }
+
+  function clearCachedTasks(userId) {
+    try {
+      localStorage.removeItem(`${STORAGE_KEY}.${userId}`);
+    } catch (error) {
+      /* ignore */
+    }
+  }
+
+  async function apiRequest(url, options = {}) {
+    const backend = window.TasklineBackend;
+    if (!backend) {
+      const missing = new Error('backend.js did not load, so accounts and tasks are unavailable.');
+      missing.code = 'missing_backend';
+      throw missing;
+    }
+
+    let payload;
+    if (options.body) {
+      try {
+        payload = JSON.parse(options.body);
+      } catch (error) {
+        payload = null;
+      }
+    }
+
+    return backend.request(options.method || 'GET', url, payload);
+  }
+
+  async function fetchTasks() {
+    const data = await apiRequest(API_URL);
+    if (!Array.isArray(data)) throw new Error('The server did not return a task array.');
+    return data
+      .filter((task) => task && typeof task.title === 'string')
+      .map(normalizeTask);
+  }
+
+  async function fetchTeams() {
+    const data = await apiRequest(TEAMS_API);
+    return Array.isArray(data) ? data : [];
+  }
+
+  async function createTaskRequest(task) {
+    const data = await apiRequest(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(task),
+    });
+    return normalizeTask(data);
+  }
+
+  async function updateTaskRequest(task) {
+    const data = await apiRequest(`${API_URL}/${encodeURIComponent(task.id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(task),
+    });
+    return normalizeTask(data);
+  }
+
+  async function deleteTaskRequest(id) {
+    await apiRequest(`${API_URL}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  }
+
+  async function createTeamRequest(name, memberEmails) {
+    return apiRequest(TEAMS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, memberEmails }),
+    });
+  }
+
+  async function updateTeamRequest(teamId, payload) {
+    return apiRequest(`${TEAMS_API}/${encodeURIComponent(teamId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async function deleteTeamRequest(teamId) {
+    await apiRequest(`${TEAMS_API}/${encodeURIComponent(teamId)}`, { method: 'DELETE' });
+  }
+
+  function queueWrite(operation, successText = 'Saved in this browser') {
+    if (!currentUser) return;
+
+    if (storageMode !== 'account') {
+      setStorageStatus('local', 'Sign in to save your changes');
+      return;
+    }
+
+    const sequence = ++saveSequence;
+    setStorageStatus('saving', 'Saving…');
+
+    saveChain = saveChain
+      .catch(() => {})
+      .then(operation)
+      .then(() => {
+        if (sequence === saveSequence) {
+          setStorageStatus('account', successText);
+        }
+      })
+      .catch((error) => {
+        if (error.status === 401) {
+          handleSessionExpired();
+          return;
+        }
+        if (sequence === saveSequence) {
+          setStorageStatus('error', 'Could not save to this browser');
+        }
+        showToast(`Could not save (${error.message}).`);
+        if (error.status === 403 || error.status === 404) {
+          void loadTasksForUser();
+        }
+      });
+  }
+
+  function persistNewTask(task) {
+    cacheTasks();
+    queueWrite(async () => {
+      const saved = await createTaskRequest(task);
+      const index = tasks.findIndex((item) => item.id === task.id);
+      if (index !== -1) {
+        tasks[index] = saved;
+        cacheTasks();
+        render();
+      }
+    }, 'Saved in this browser');
+  }
+
+  function persistTask(task) {
+    cacheTasks();
+    queueWrite(() => updateTaskRequest(task));
+  }
+
+  function persistDelete(task) {
+    cacheTasks();
+    queueWrite(() => deleteTaskRequest(task.id));
+  }
+
+  function save() {
+    if (!currentUser) return;
+
+    // Keep a browser copy so the list renders instantly on reload.
+    cacheTasks();
+
+    if (storageMode !== 'account') {
+      setStorageStatus('local', 'Saved in this browser');
+    }
+  }
+
+  function setStorageStatus(state, text) {
+    if (!els.storageLine) return;
+    els.storageLine.dataset.state = state;
+    els.storageText.textContent = text;
+    els.storageLine.title = text;
+  }
+
+  /* ---------------- Filtering / sorting ---------------- */
+
+  function getVisibleTasks() {
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = tasks.filter((task) => {
+      if (view === 'tasks' ? task.archived : !task.archived) return false;
+      if (statusFilter !== 'all' && task.status !== statusFilter) return false;
+      if (scopeFilter !== 'all' && task.scope !== scopeFilter) return false;
+      if (query) {
+        const haystack = `${task.title} ${task.notes} ${task.teamName || ''} ${task.assigneeName || ''} ${task.assigneeEmail || ''}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    });
+
+    return filtered.sort(view === 'archive' ? compareArchived : compareActive);
+  }
+
+  function compareActive(a, b) {
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
+    const priority = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+    if (priority !== 0) return priority;
+    return a.createdAt.localeCompare(b.createdAt);
+  }
+
+  function compareArchived(a, b) {
+    return (b.archivedAt || '').localeCompare(a.archivedAt || '');
+  }
+
+  function groupByDate(items) {
+    const groups = new Map();
+    items.forEach((task) => {
+      if (!groups.has(task.date)) groups.set(task.date, []);
+      groups.get(task.date).push(task);
+    });
+    return groups;
+  }
+
+  /* ---------------- Rendering ---------------- */
+
+  function render() {
+    renderStats();
+    renderTabs();
+    renderTaskList();
+    els.statusFilter.value = statusFilter;
+    els.scopeFilter.value = scopeFilter;
+  }
+
+  function renderStats() {
+    const today = localDateStr();
+    const active = tasks.filter((task) => !task.archived);
+    const overdue = active.filter((task) => task.date < today).length;
+    const dueToday = active.filter((task) => task.date === today).length;
+    const inProgress = active.filter((task) => task.status === 'inprogress').length;
+    const onHold = active.filter((task) => task.status === 'hold').length;
+    const archived = tasks.filter((task) => task.archived).length;
+
+    els.stats.innerHTML = `
+      <div class="stat">
+        <span class="stat-label">Active tasks</span>
+        <span class="stat-value">${active.length}</span>
+        <span class="stat-hint">${overdue ? `${overdue} overdue` : 'Nothing overdue'}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Due today</span>
+        <span class="stat-value">${dueToday}</span>
+        <span class="stat-hint">${inProgress} in progress</span>
+      </div>
+      <div class="stat${onHold ? ' stat-hold' : ''}">
+        <span class="stat-label">On hold</span>
+        <span class="stat-value">${onHold}</span>
+        <span class="stat-hint">${onHold ? 'Needs attention' : 'Nothing paused'}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Archived</span>
+        <span class="stat-value">${archived}</span>
+        <span class="stat-hint">Completed &amp; stored</span>
+      </div>`;
+  }
+
+  function renderTabs() {
+    const active = tasks.filter((task) => !task.archived).length;
+    const archived = tasks.filter((task) => task.archived).length;
+    els.activeCount.textContent = active;
+    els.archivedCount.textContent = archived;
+
+    els.tabs.forEach((tab) => {
+      const isActive = tab.dataset.view === view;
+      tab.classList.toggle('is-active', isActive);
+      tab.setAttribute('aria-selected', String(isActive));
+    });
+
+    els.statusFilterWrap.hidden = view === 'archive';
+    els.taskList.setAttribute('aria-labelledby', view === 'tasks' ? 'tabTasks' : 'tabArchive');
+  }
+
+  function renderTaskList() {
+    const items = getVisibleTasks();
+
+    if (!items.length) {
+      els.taskList.innerHTML = emptyState();
+      return;
+    }
+
+    if (view === 'archive') {
+      els.taskList.innerHTML = `
+        <section class="date-group">
+          <header class="group-header">
+            <h2 class="group-title">Archive</h2>
+            <span class="group-date">Completed tasks</span>
+            <span class="group-count">${items.length} ${items.length === 1 ? 'task' : 'tasks'}</span>
+          </header>
+          <div class="task-list">${items.map(taskRow).join('')}</div>
+        </section>`;
+      return;
+    }
+
+    const groups = groupByDate(items);
+    const today = localDateStr();
+
+    els.taskList.innerHTML = Array.from(groups, ([date, list]) => {
+      const overdue = date < today;
+      return `
+        <section class="date-group">
+          <header class="group-header">
+            <h2 class="group-title">${groupTitle(date)}${overdue ? ' <span class="chip chip-overdue">Overdue</span>' : ''}</h2>
+            <span class="group-date">${formatGroupDate(date)}</span>
+            <span class="group-count">${list.length} ${list.length === 1 ? 'task' : 'tasks'}</span>
+          </header>
+          <div class="task-list">${list.map(taskRow).join('')}</div>
+        </section>`;
+    }).join('');
+  }
+
+  function taskRow(task) {
+    const status = STATUS[task.status] || STATUS.todo;
+    const priority = PRIORITIES[task.priority] || PRIORITIES.medium;
+    const overdue = !task.archived && task.date < localDateStr();
+    const classes = ['task'];
+    if (task.archived) classes.push('is-archived');
+    if (task.status === 'hold') classes.push('is-hold');
+    if (overdue) classes.push('is-overdue');
+
+    const title = escapeHtml(task.title);
+    const checkboxAction = task.archived ? 'restore' : 'complete';
+    const scopeBadge = task.scope === 'team'
+      ? `<span class="chip chip-team">${icon('users', 12)} ${escapeHtml(task.teamName || 'Team')}</span>`
+      : '<span class="chip chip-personal">Personal</span>';
+    const assigneeBadge = task.scope === 'team'
+      ? (task.assigneeName
+        ? `<span class="chip chip-assignee">${escapeHtml(task.assigneeName)}</span>`
+        : '<span class="chip chip-unassigned">Unassigned</span>')
+      : '';
+
+    return `
+      <article class="${classes.join(' ')}" data-id="${escapeHtml(task.id)}">
+        <button type="button" class="check${task.archived ? ' is-checked' : ''}"
+          data-action="${checkboxAction}" role="checkbox" aria-checked="${task.archived}"
+          aria-label="${task.archived ? 'Restore task: ' : 'Complete and archive task: '}${title}"
+          title="${task.archived ? 'Restore task' : 'Mark complete & archive'}">
+          ${icon('check', 14)}
+        </button>
+
+        <div class="task-main">
+          <div class="task-head">
+            <h3 class="task-title">${title}</h3>
+            ${scopeBadge}
+            ${assigneeBadge}
+            <span class="chip ${status.className}">${status.label}</span>
+            <span class="chip ${priority.className}">${priority.label}</span>
+            ${overdue ? '<span class="chip chip-overdue">Overdue</span>' : ''}
+          </div>
+
+          ${task.notes ? `<p class="task-notes">${escapeHtml(task.notes)}</p>` : ''}
+
+          <div class="task-meta">
+            <span class="meta-item">${icon('calendar', 14)} ${formatFullDate(task.date)}</span>
+            <span class="meta-item">${task.archived ? 'Archived' : 'Added'} ${relativeTime(task.archived ? task.archivedAt : task.createdAt)}</span>
+            ${task.scope === 'team' && task.createdByName ? `<span class="meta-item">${icon('users', 14)} Shared by ${escapeHtml(task.createdByName)}</span>` : ''}
+          </div>
+
+          ${task.status === 'hold' ? `<div class="hold-note">${icon('pause', 14)} <span><strong>On hold</strong> — update the status when you're ready to resume.</span></div>` : ''}
+        </div>
+
+        <div class="task-side">
+          <label class="sr-only" for="status-${escapeHtml(task.id)}">Status for ${title}</label>
+          <select id="status-${escapeHtml(task.id)}" class="status-select ${status.className}" data-action="status">
+            ${statusOptions(task.status)}
+          </select>
+
+          <div class="row-actions">
+            ${task.archived ? `<button type="button" class="icon-btn" data-action="restore" aria-label="Restore task" title="Restore">${icon('restore')}</button>` : ''}
+            <button type="button" class="icon-btn" data-action="edit" aria-label="Edit task" title="Edit">${icon('pencil')}</button>
+            ${task.canDelete === false ? '' : `<button type="button" class="icon-btn icon-btn-danger" data-action="delete" aria-label="Delete task" title="Delete">${icon('trash')}</button>`}
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function emptyState() {
+    const hasFilters = Boolean(searchQuery.trim()) || statusFilter !== 'all' || scopeFilter !== 'all';
+
+    if (view === 'archive') {
+      return `
+        <div class="empty">
+          <div class="empty-icon" aria-hidden="true">🗂️</div>
+          <h3>Archive is empty</h3>
+          <p>Tick a task's checkbox to complete it, and it will be stored here.</p>
+        </div>`;
+    }
+
+    if (hasFilters) {
+      return `
+        <div class="empty">
+          <div class="empty-icon" aria-hidden="true">🔍</div>
+          <h3>No tasks match your filters</h3>
+          <p>Try a different search term or status.</p>
+          <button type="button" class="btn btn-ghost" data-clear-filters>Clear filters</button>
+        </div>`;
+    }
+
+    return `
+      <div class="empty">
+        <div class="empty-icon" aria-hidden="true">🗓️</div>
+        <h3>Your plan is empty</h3>
+        <p>Add your first task above, or load a few sample tasks to explore how Taskline works.</p>
+        <button type="button" class="btn btn-ghost" data-load-samples>Load sample tasks</button>
+      </div>`;
+  }
+
+  /* ---------------- Task actions ---------------- */
+
+  function archiveTask(id) {
+    const task = tasks.find((item) => item.id === id);
+    if (!task || task.archived) return;
+
+    const previous = {
+      status: task.status,
+      archived: task.archived,
+      archivedAt: task.archivedAt,
+    };
+
+    task.status = 'complete';
+    task.archived = true;
+    task.archivedAt = new Date().toISOString();
+    task.updatedAt = task.archivedAt;
+    persistTask(task);
+    render();
+
+    showToast(`“${truncate(task.title, 42)}” archived`, () => {
+      Object.assign(task, previous);
+      task.updatedAt = new Date().toISOString();
+      persistTask(task);
+      render();
+    });
+  }
+
+  function restoreTask(id) {
+    const task = tasks.find((item) => item.id === id);
+    if (!task || !task.archived) return;
+
+    task.archived = false;
+    task.archivedAt = null;
+    if (task.status === 'complete') task.status = 'todo';
+    task.updatedAt = new Date().toISOString();
+    persistTask(task);
+    render();
+    showToast('Task restored to active tasks');
+  }
+
+  function setStatus(id, status) {
+    if (!STATUS[status]) return;
+    const task = tasks.find((item) => item.id === id);
+    if (!task) return;
+
+    if (status === 'complete') {
+      if (task.archived) {
+        task.status = 'complete';
+        task.updatedAt = new Date().toISOString();
+        persistTask(task);
+        render();
+      } else {
+        archiveTask(id);
+      }
+      return;
+    }
+
+    const wasArchived = task.archived;
+    task.status = status;
+    task.archived = false;
+    task.archivedAt = null;
+    task.updatedAt = new Date().toISOString();
+    persistTask(task);
+    render();
+
+    if (wasArchived) {
+      showToast('Task restored to active tasks');
+    } else if (status === 'hold') {
+      showToast('Task moved to On hold — needs attention');
+    }
+  }
+
+  function requestDelete(id) {
+    const task = tasks.find((item) => item.id === id);
+    if (!task) return;
+
+    openConfirm({
+      title: 'Delete task?',
+      message: `“${truncate(task.title, 90)}” will be permanently removed.`,
+      confirmLabel: 'Delete task',
+      onConfirm: () => {
+        const index = tasks.findIndex((item) => item.id === id);
+        if (index === -1) return;
+        const [removed] = tasks.splice(index, 1);
+        persistDelete(removed);
+        render();
+        showToast('Task deleted', () => {
+          tasks.push(removed);
+          persistNewTask(removed);
+          render();
+        });
+      },
+    });
+  }
+
+  function openEdit(id) {
+    const task = tasks.find((item) => item.id === id);
+    if (!task) return;
+
+    editingId = id;
+    els.editTitle.value = task.title;
+    els.editDate.value = task.date;
+    els.editStatus.value = task.status;
+    els.editPriority.value = task.priority;
+    els.editNotes.value = task.notes || '';
+    els.editError.hidden = true;
+
+    const isTeam = task.scope === 'team';
+    els.editSharing.hidden = !isTeam;
+    if (isTeam) {
+      els.editTeamName.value = task.teamName || 'Team';
+      const team = teams.find((item) => item.id === task.teamId);
+      const members = team ? team.members : [];
+      els.editAssignee.innerHTML = '<option value="">Unassigned</option>' + members
+        .map((member) => `<option value="${escapeHtml(member.id)}">${escapeHtml(member.name)} (${escapeHtml(member.email)})</option>`)
+        .join('');
+      if (task.assigneeId && !members.some((member) => member.id === task.assigneeId)) {
+        const option = document.createElement('option');
+        option.value = task.assigneeId;
+        option.textContent = task.assigneeName || 'Former member';
+        els.editAssignee.appendChild(option);
+      }
+      els.editAssignee.value = task.assigneeId || '';
+    }
+
+    els.editDialog.showModal();
+    els.editTitle.focus();
+    els.editTitle.select();
+  }
+
+  function setView(nextView) {
+    if (view === nextView) return;
+    view = nextView;
+    statusFilter = 'all';
+    els.statusFilter.value = 'all';
+    render();
+  }
+
+  function clearFilters() {
+    searchQuery = '';
+    statusFilter = 'all';
+    scopeFilter = 'all';
+    els.search.value = '';
+    els.statusFilter.value = 'all';
+    els.scopeFilter.value = 'all';
+    render();
+  }
+
+  /* ---------------- Dialogs & toast ---------------- */
+
+  function openConfirm({ title, message, confirmLabel, onConfirm }) {
+    els.confirmTitle.textContent = title;
+    els.confirmMessage.textContent = message;
+    els.confirmDeleteBtn.textContent = confirmLabel;
+    confirmAction = onConfirm;
+    els.confirmDialog.showModal();
+  }
+
+  function showToast(message, undo) {
+    clearTimeout(toastTimer);
+    els.toastMessage.textContent = message;
+    toastUndo = typeof undo === 'function' ? undo : null;
+    els.toastAction.hidden = !toastUndo;
+    els.toast.hidden = false;
+    toastTimer = setTimeout(hideToast, 6500);
+  }
+
+  function hideToast() {
+    clearTimeout(toastTimer);
+    toastTimer = null;
+    toastUndo = null;
+    els.toast.hidden = true;
+  }
+
+  function applyTheme(theme) {
+    const nextTheme = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.dataset.theme = nextTheme;
+    try {
+      localStorage.setItem(THEME_KEY, nextTheme);
+    } catch (error) {
+      /* ignore */
+    }
+    const label = nextTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+    document.querySelectorAll('.theme-toggle').forEach((button) => {
+      button.setAttribute('aria-label', label);
+      button.setAttribute('title', label);
+    });
+  }
+
+  function initTheme() {
+    let theme = document.documentElement.dataset.theme;
+    if (theme !== 'light' && theme !== 'dark') {
+      theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    applyTheme(theme);
+
+    document.querySelectorAll('.theme-toggle').forEach((button) => {
+      button.addEventListener('click', () => {
+        applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+      });
+    });
+  }
+
+  /* ---------------- Teams & task sharing ---------------- */
+
+  function selectedTeam() {
+    return teams.find((team) => team.id === els.taskTeam.value) || teams[0] || null;
+  }
+
+  function renderAssigneePicker() {
+    const team = selectedTeam();
+    const current = els.taskAssignee.value;
+    if (!team) {
+      els.taskAssignee.innerHTML = '<option value="">Unassigned</option>';
+      els.taskAssignee.disabled = true;
+      return;
+    }
+    els.taskAssignee.disabled = false;
+    els.taskAssignee.innerHTML = '<option value="">Unassigned</option>' + team.members
+      .map((member) => `<option value="${escapeHtml(member.id)}">${escapeHtml(member.name)} (${escapeHtml(member.email)})</option>`)
+      .join('');
+    if (team.members.some((member) => member.id === current)) {
+      els.taskAssignee.value = current;
+    }
+  }
+
+  function renderTeamPicker() {
+    const current = els.taskTeam.value;
+    if (!teams.length) {
+      els.taskTeam.innerHTML = '<option value="">No teams yet</option>';
+      els.taskTeam.disabled = true;
+      els.taskAssignee.innerHTML = '<option value="">Unassigned</option>';
+      els.taskAssignee.disabled = true;
+      return;
+    }
+    els.taskTeam.disabled = false;
+    els.taskTeam.innerHTML = teams
+      .map((team) => `<option value="${escapeHtml(team.id)}">${escapeHtml(team.name)}</option>`)
+      .join('');
+    if (teams.some((team) => team.id === current)) {
+      els.taskTeam.value = current;
+    }
+    renderAssigneePicker();
+  }
+
+  function setTaskScope(scope) {
+    if (scope === 'team' && !teams.length) {
+      taskScope = 'personal';
+      openTeamsDialog();
+      showToast('Create a team first, then you can share tasks with it.');
+      return;
+    }
+
+    taskScope = scope === 'team' ? 'team' : 'personal';
+    els.scopeButtons.forEach((button) => {
+      const active = button.dataset.scope === taskScope;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+
+    const isTeam = taskScope === 'team';
+    els.teamPickerWrap.hidden = !isTeam;
+    els.assigneePickerWrap.hidden = !isTeam;
+    if (isTeam) renderTeamPicker();
+  }
+
+  async function loadTeamsForUser() {
+    if (!currentUser) return;
+    try {
+      teams = await fetchTeams();
+    } catch (error) {
+      if (error.status === 401) {
+        handleSessionExpired();
+        return;
+      }
+      teams = [];
+    }
+    renderTeamPicker();
+    renderTeamsDialog();
+    if (taskScope === 'team' && !teams.length) setTaskScope('personal');
+  }
+
+  function renderTeamsDialog() {
+    if (!els.teamList) return;
+
+    if (!teams.length) {
+      els.teamList.innerHTML = '<p class="empty-inline">You are not in any teams yet. Create one above, then share tasks with it.</p>';
+      return;
+    }
+
+    els.teamList.innerHTML = teams.map((team) => {
+      const memberLabel = `${team.members.length} member${team.members.length === 1 ? '' : 's'}`;
+      const members = team.members.map((member) => `
+        <span class="member-chip">
+          <span class="member-name">${escapeHtml(member.name)} <small>${escapeHtml(member.email)}</small></span>
+          ${team.isOwner && member.id !== team.ownerId ? `<button type="button" class="member-remove" data-team-action="remove-member" data-team-id="${escapeHtml(team.id)}" data-member-email="${escapeHtml(member.email)}" aria-label="Remove ${escapeHtml(member.name)}" title="Remove member">×</button>` : ''}
+        </span>`).join('');
+
+      return `
+        <article class="team-card" data-team-id="${escapeHtml(team.id)}">
+          <header class="team-card-head">
+            <div class="team-title-wrap">
+              ${team.isOwner
+                ? `<input class="team-name-input" data-team-name value="${escapeHtml(team.name)}" maxlength="80" aria-label="Team name">`
+                : `<h3 class="team-name">${escapeHtml(team.name)}</h3>`}
+              <p class="team-sub">${memberLabel}${team.isOwner ? ' · You own this team' : ` · Owner: ${escapeHtml(team.ownerName)}`}</p>
+            </div>
+            ${team.isOwner ? `<div class="row-actions">
+              <button type="button" class="icon-btn" data-team-action="rename" data-team-id="${escapeHtml(team.id)}" aria-label="Save team name" title="Save team name">${icon('check')}</button>
+              <button type="button" class="icon-btn icon-btn-danger" data-team-action="delete" data-team-id="${escapeHtml(team.id)}" aria-label="Delete team" title="Delete team">${icon('trash')}</button>
+            </div>` : ''}
+          </header>
+          <div class="team-members">${members}</div>
+          ${team.isOwner ? `<div class="team-add-member">
+            <input type="email" class="team-member-input" data-member-input maxlength="254" placeholder="member@example.com" aria-label="Member email">
+            <button type="button" class="btn btn-ghost btn-sm" data-team-action="add-member" data-team-id="${escapeHtml(team.id)}">Add member</button>
+          </div>` : ''}
+        </article>`;
+    }).join('');
+  }
+
+  function openTeamsDialog() {
+    showFieldError(els.teamCreateError, '');
+    renderTeamsDialog();
+    els.accountMenu.hidden = true;
+    els.accountBtn.setAttribute('aria-expanded', 'false');
+    if (!els.teamsDialog.open) els.teamsDialog.showModal();
+  }
+
+  async function refreshTeamsAndTasks() {
+    await loadTeamsForUser();
+    await loadTasksForUser();
+    renderTeamsDialog();
+  }
+
+  async function submitTeamCreate(event) {
+    event.preventDefault();
+    showFieldError(els.teamCreateError, '');
+
+    const name = els.teamName.value.trim();
+    if (!name) {
+      showFieldError(els.teamCreateError, 'Enter a team name.');
+      return;
+    }
+
+    const memberEmails = els.teamMembers.value
+      .split(/[,;\s]+/)
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    try {
+      await createTeamRequest(name, memberEmails);
+      els.teamCreateForm.reset();
+      await refreshTeamsAndTasks();
+      showToast(`Team “${name}” created`);
+    } catch (error) {
+      const unknown = error.data && Array.isArray(error.data.unknown) ? error.data.unknown : [];
+      showFieldError(
+        els.teamCreateError,
+        unknown.length ? `No account found for: ${unknown.join(', ')}` : error.message
+      );
+    }
+  }
+
+  async function renameTeam(teamId, name) {
+    if (!name) {
+      showToast('Enter a team name first.');
+      return;
+    }
+    try {
+      await updateTeamRequest(teamId, { name });
+      await refreshTeamsAndTasks();
+      showToast('Team name updated');
+    } catch (error) {
+      showToast(error.message);
+    }
+  }
+
+  async function addTeamMember(teamId, email) {
+    if (!email) {
+      showToast('Enter the email of a registered user.');
+      return;
+    }
+    try {
+      await updateTeamRequest(teamId, { addEmails: [email] });
+      await refreshTeamsAndTasks();
+      showToast('Team member added');
+    } catch (error) {
+      showToast(error.message);
+    }
+  }
+
+  async function removeTeamMember(teamId, email) {
+    try {
+      await updateTeamRequest(teamId, { removeEmails: [email] });
+      await refreshTeamsAndTasks();
+      showToast('Team member removed');
+    } catch (error) {
+      showToast(error.message);
+    }
+  }
+
+  async function deleteTeam(teamId) {
+    try {
+      await deleteTeamRequest(teamId);
+      await refreshTeamsAndTasks();
+      showToast('Team deleted');
+    } catch (error) {
+      showToast(error.message);
+    }
+  }
+
+  /* ---------------- JSON import / export ---------------- */
+
+  function exportJson() {
+    const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `taskline-${localDateStr()}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Tasks exported as JSON');
+  }
+
+  function importJsonFile(file) {
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('That JSON file is too large (maximum 5 MB).');
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result));
+        const list = Array.isArray(parsed)
+          ? parsed
+          : (parsed && Array.isArray(parsed.tasks) ? parsed.tasks : null);
+
+        if (!list) throw new Error('expected a JSON array of tasks');
+
+        const imported = list
+          .filter((task) => task && typeof task.title === 'string')
+          .map(normalizeTask);
+
+        if (!imported.length) throw new Error('no tasks found in that file');
+
+        openConfirm({
+          title: 'Import tasks?',
+          message: `This adds ${imported.length} task(s) from “${file.name}”. Team tasks are added to a matching team you belong to when possible; otherwise they become personal tasks.`,
+          confirmLabel: 'Import tasks',
+          onConfirm: () => {
+            const now = new Date().toISOString();
+            let added = 0;
+
+            imported.forEach((task) => {
+              let scope = 'personal';
+              let teamId = null;
+              let assigneeId = null;
+
+              if (task.scope === 'team') {
+                const team = teams.find((item) => item.id === task.teamId)
+                  || teams.find((item) => item.name === task.teamName);
+                if (team) {
+                  scope = 'team';
+                  teamId = team.id;
+                  if (task.assigneeId && team.members.some((member) => member.id === task.assigneeId)) {
+                    assigneeId = task.assigneeId;
+                  }
+                }
+              }
+
+              const nextTask = normalizeTask({
+                ...task,
+                id: uid(),
+                scope,
+                teamId,
+                assigneeId,
+                createdBy: currentUser ? currentUser.id : null,
+                createdAt: now,
+                updatedAt: now,
+                archivedAt: task.archived ? (task.archivedAt || now) : null,
+              });
+
+              tasks.push(nextTask);
+              persistNewTask(nextTask);
+              added += 1;
+            });
+
+            render();
+            showToast(`Imported ${added} task(s) from JSON`);
+          },
+        });
+      } catch (error) {
+        showToast(`Could not import JSON: ${error.message}`);
+      }
+    };
+
+    reader.onerror = () => showToast('Could not read that file');
+    reader.readAsText(file);
+  }
+
+  /* ---------------- Authentication ---------------- */
+
+  function showFieldError(element, message) {
+    if (!element) return;
+    element.textContent = message || '';
+    element.hidden = !message;
+  }
+
+  function setAuthNotice(message) {
+    els.authNotice.textContent = message || '';
+    els.authNotice.hidden = !message;
+  }
+
+  function setAuthTab(tab) {
+    authTab = tab === 'register' ? 'register' : 'login';
+    els.authTabs.forEach((button) => {
+      const active = button.dataset.authTab === authTab;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', String(active));
+    });
+    els.loginForm.hidden = authTab !== 'login';
+    els.registerForm.hidden = authTab !== 'register';
+    showFieldError(els.loginError, '');
+    showFieldError(els.registerError, '');
+  }
+
+  function showAuth(tab = 'login', notice = '') {
+    els.appShell.hidden = true;
+    els.authView.hidden = false;
+    setAuthTab(tab);
+    setAuthNotice(notice);
+    document.title = 'Sign in — Taskline';
+  }
+
+  function renderAccount() {
+    if (!currentUser) return;
+    const email = currentUser.email || '';
+    const name = currentUser.name || email.split('@')[0] || 'Account';
+    els.accountEmail.textContent = name;
+    els.accountMenuName.textContent = name;
+    els.accountMenuEmail.textContent = email;
+    els.accountInitial.textContent = (name.charAt(0) || email.charAt(0) || '?').toUpperCase();
+  }
+
+  function enterApp(user) {
+    currentUser = user;
+    storageMode = 'account';
+    teams = [];
+    els.authView.hidden = true;
+    els.appShell.hidden = false;
+    els.accountMenu.hidden = true;
+    els.accountBtn.setAttribute('aria-expanded', 'false');
+    setAuthNotice('');
+    renderAccount();
+    setTaskScope('personal');
+    renderTeamPicker();
+    document.title = 'Taskline — Daily tasks';
+  }
+
+  function endSession(notice = '') {
+    if (currentUser) clearCachedTasks(currentUser.id);
+    currentUser = null;
+    tasks = [];
+    teams = [];
+    storageMode = 'local';
+    saveSequence += 1;
+    els.accountMenu.hidden = true;
+    els.accountBtn.setAttribute('aria-expanded', 'false');
+    if (els.passwordDialog.open) els.passwordDialog.close();
+    if (els.resetDialog.open) els.resetDialog.close();
+    if (els.teamsDialog.open) els.teamsDialog.close();
+    els.loginForm.reset();
+    els.loginPassword.value = '';
+    setTaskScope('personal');
+    renderTeamPicker();
+    renderTeamsDialog();
+    showAuth('login', notice);
+  }
+
+  function handleSessionExpired() {
+    endSession('Your session has expired. Please sign in again.');
+  }
+
+  async function loadTasksForUser() {
+    try {
+      const serverTasks = await fetchTasks();
+      storageMode = 'account';
+      tasks = serverTasks;
+      cacheTasks();
+      render();
+      setStorageStatus('account', 'Saved in this browser');
+    } catch (error) {
+      if (error.status === 401) {
+        handleSessionExpired();
+        return;
+      }
+      storageMode = 'local';
+      render();
+      setStorageStatus(
+        'local',
+        tasks.length
+          ? 'Showing the last saved copy from this browser'
+          : 'Nothing saved yet'
+      );
+    }
+  }
+
+  async function startSession(user, notice) {
+    enterApp(user);
+    tasks = loadCachedTasks();
+    render();
+    setStorageStatus('checking', 'Loading your tasks…');
+    if (notice) showToast(notice);
+    await loadTeamsForUser();
+    await loadTasksForUser();
+  }
+
+  async function submitLogin(event) {
+    event.preventDefault();
+    showFieldError(els.loginError, '');
+
+    const email = els.loginEmail.value.trim();
+    const password = els.loginPassword.value;
+    if (!email || !password) {
+      showFieldError(els.loginError, 'Enter your email and password.');
+      return;
+    }
+
+    try {
+      const data = await apiRequest(`${AUTH_API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      els.loginForm.reset();
+      await startSession(data.user, 'Signed in');
+    } catch (error) {
+      showFieldError(els.loginError, error.message);
+    }
+  }
+
+  async function submitRegister(event) {
+    event.preventDefault();
+    showFieldError(els.registerError, '');
+
+    const name = els.registerName.value.trim();
+    const email = els.registerEmail.value.trim();
+    const password = els.registerPassword.value;
+    const confirm = els.registerConfirm.value;
+    const maidenName = els.registerMaiden.value.trim();
+
+    if (!name || !email || !password || !maidenName) {
+      showFieldError(els.registerError, 'Fill in your name, email, password, and mother\'s maiden name.');
+      return;
+    }
+    if (name.length < 2) {
+      showFieldError(els.registerError, 'Enter your name (at least 2 characters).');
+      return;
+    }
+    if (password.length < 8) {
+      showFieldError(els.registerError, 'Password must be at least 8 characters.');
+      return;
+    }
+    if (password !== confirm) {
+      showFieldError(els.registerError, 'The two passwords do not match.');
+      return;
+    }
+    if (maidenName.length < 2) {
+      showFieldError(els.registerError, 'Enter your mother\'s maiden name (at least 2 characters).');
+      return;
+    }
+
+    try {
+      const data = await apiRequest(`${AUTH_API}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, maidenName }),
+      });
+      els.registerForm.reset();
+      await startSession(data.user, 'Account created');
+    } catch (error) {
+      showFieldError(els.registerError, error.message);
+    }
+  }
+
+  async function signOut() {
+    try {
+      await apiRequest(`${AUTH_API}/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+    } catch (error) {
+      /* Clear the local session even if the request fails. */
+    }
+    endSession('You have been signed out.');
+  }
+
+  /* ---------------- Change password ---------------- */
+
+  function openPasswordDialog() {
+    els.passwordForm.reset();
+    showFieldError(els.pwError, '');
+    els.accountMenu.hidden = true;
+    els.accountBtn.setAttribute('aria-expanded', 'false');
+    els.passwordDialog.showModal();
+    els.pwCurrent.focus();
+  }
+
+  async function submitPasswordChange(event) {
+    event.preventDefault();
+    showFieldError(els.pwError, '');
+
+    const currentPassword = els.pwCurrent.value;
+    const maidenName = els.pwMaiden.value.trim();
+    const newPassword = els.pwNew.value;
+    const confirm = els.pwConfirm.value;
+
+    if (!currentPassword || !maidenName) {
+      showFieldError(els.pwError, 'Enter your current password and your mother\'s maiden name.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      showFieldError(els.pwError, 'New password must be at least 8 characters.');
+      return;
+    }
+    if (newPassword !== confirm) {
+      showFieldError(els.pwError, 'The two new passwords do not match.');
+      return;
+    }
+
+    try {
+      const data = await apiRequest(`${AUTH_API}/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, maidenName, newPassword }),
+      });
+      els.passwordDialog.close();
+      endSession(data.message || 'Password updated. Please sign in again.');
+    } catch (error) {
+      if (error.code === 'maiden_mismatch') {
+        els.passwordDialog.close();
+        openResetDialog({
+          email: (error.data && error.data.email) || (currentUser && currentUser.email) || '',
+          step: 2,
+          devMode: Boolean(error.data && error.data.devMode),
+          note: error.message,
+          requireCode: true,
+        });
+        return;
+      }
+      showFieldError(els.pwError, error.message);
+    }
+  }
+
+  /* ---------------- Forgot / reset password ---------------- */
+
+  function resetShowStep(step) {
+    resetState.step = step;
+    const one = step === 1;
+    els.resetStepOne.hidden = !one;
+    els.resetStepTwo.hidden = one;
+    els.resetFootOne.hidden = !one;
+    els.resetFootTwo.hidden = one;
+    showFieldError(els.resetErrorOne, '');
+    showFieldError(els.resetErrorTwo, '');
+  }
+
+  function openResetDialog(options = {}) {
+    resetState = {
+      step: 1,
+      email: options.email || '',
+      resetToken: options.resetToken || null,
+      devMode: Boolean(options.devMode),
+    };
+
+    els.resetForm.reset();
+    els.resetEmail.value = resetState.email;
+    els.resetMailPreview.hidden = true;
+    els.resetMailPreview.textContent = '';
+
+    if (options.step === 2) {
+      resetShowStep(2);
+      const requireCode = options.requireCode !== false;
+      els.resetCodeWrap.hidden = !requireCode;
+      els.viewMailBtn.hidden = !(requireCode && resetState.devMode);
+      els.resetNote.classList.toggle('is-success', !requireCode);
+      els.resetNote.textContent = options.note
+        || (requireCode ? 'Enter the verification code from your email.' : 'Identity confirmed. Choose a new password.');
+    } else {
+      resetShowStep(1);
+    }
+
+    els.resetDialog.showModal();
+  }
+
+  async function requestReset() {
+    showFieldError(els.resetErrorOne, '');
+    const email = els.resetEmail.value.trim();
+    const maidenName = els.resetMaiden.value.trim();
+
+    if (!email) {
+      showFieldError(els.resetErrorOne, 'Enter the email for your account.');
+      return;
+    }
+
+    try {
+      const data = await apiRequest(`${AUTH_API}/forgot`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, maidenName }),
+      });
+
+      resetState.email = data.email || email;
+
+      if (data.verifiedBy === 'maiden') {
+        resetState.resetToken = data.resetToken;
+        resetShowStep(2);
+        els.resetCodeWrap.hidden = true;
+        els.resetNote.classList.add('is-success');
+        els.resetNote.textContent = data.message || 'Maiden name verified. Choose a new password.';
+      } else {
+        resetState.resetToken = null;
+        resetState.devMode = Boolean(data.devMode);
+        resetShowStep(2);
+        els.resetCodeWrap.hidden = false;
+        els.viewMailBtn.hidden = !resetState.devMode;
+        els.resetNote.classList.remove('is-success');
+        els.resetNote.textContent = data.message || 'Check your email for a verification code.';
+      }
+
+      els.resetNew.focus();
+    } catch (error) {
+      showFieldError(els.resetErrorOne, error.message);
+    }
+  }
+
+  async function completeReset() {
+    showFieldError(els.resetErrorTwo, '');
+    const newPassword = els.resetNew.value;
+    const confirm = els.resetConfirm.value;
+
+    if (newPassword.length < 8) {
+      showFieldError(els.resetErrorTwo, 'New password must be at least 8 characters.');
+      return;
+    }
+    if (newPassword !== confirm) {
+      showFieldError(els.resetErrorTwo, 'The two new passwords do not match.');
+      return;
+    }
+
+    const body = { email: resetState.email, newPassword };
+    if (resetState.resetToken) {
+      body.resetToken = resetState.resetToken;
+    } else {
+      const code = els.resetCode.value.trim();
+      if (!code) {
+        showFieldError(els.resetErrorTwo, 'Enter the verification code from your email.');
+        return;
+      }
+      body.code = code;
+    }
+
+    try {
+      const data = await apiRequest(`${AUTH_API}/reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      els.resetDialog.close();
+      endSession(data.message || 'Password updated. Please sign in again.');
+    } catch (error) {
+      showFieldError(els.resetErrorTwo, error.message);
+    }
+  }
+
+  async function viewLocalMail() {
+    try {
+      const data = await apiRequest(`/api/dev/last-mail?email=${encodeURIComponent(resetState.email)}`);
+      els.resetMailPreview.textContent = `To: ${data.to}\nSubject: ${data.subject}\n\n${data.body}`;
+      els.resetMailPreview.hidden = false;
+    } catch (error) {
+      els.resetMailPreview.textContent = error.message;
+      els.resetMailPreview.hidden = false;
+    }
+  }
+
+  /* ---------------- Loading ---------------- */
+
+  async function boot() {
+    try {
+      const data = await apiRequest(`${AUTH_API}/me`);
+      if (data && data.user) {
+        enterApp(data.user);
+        tasks = loadCachedTasks();
+        render();
+        setStorageStatus('checking', 'Loading your tasks…');
+        await loadTeamsForUser();
+        await loadTasksForUser();
+        return;
+      }
+    } catch (error) {
+      if (error.status === 401) {
+        showAuth('login');
+        return;
+      }
+      showAuth('login', error.message);
+      return;
+    }
+    showAuth('login');
+  }
+
+  /* ---------------- Sample data ---------------- */
+
+  function loadSamples() {
+    const today = localDateStr();
+    const base = Date.now();
+    const samples = [
+      {
+        title: 'Review sprint board and plan the day',
+        notes: 'Focus on the two blocked tickets first.',
+        date: today,
+        status: 'inprogress',
+        priority: 'high',
+      },
+      {
+        title: 'Prepare quarterly report outline',
+        notes: 'Waiting on the finance numbers from Priya.',
+        date: today,
+        status: 'hold',
+        priority: 'high',
+      },
+      {
+        title: 'Reply to client emails',
+        notes: '',
+        date: today,
+        status: 'todo',
+        priority: 'medium',
+      },
+      {
+        title: 'Book dentist appointment',
+        notes: '',
+        date: addDays(today, -1),
+        status: 'todo',
+        priority: 'low',
+      },
+      {
+        title: 'Gym — leg day',
+        notes: '',
+        date: addDays(today, 1),
+        status: 'todo',
+        priority: 'low',
+      },
+      {
+        title: 'Send invoice to Acme Corp',
+        notes: '',
+        date: today,
+        status: 'complete',
+        priority: 'medium',
+      },
+    ];
+
+    const createdTasks = samples.map((sample, index) => {
+      const created = new Date(base - index * 60 * 1000).toISOString();
+      return normalizeTask({
+        ...sample,
+        id: uid(),
+        scope: 'personal',
+        createdBy: currentUser ? currentUser.id : null,
+        createdAt: created,
+        updatedAt: created,
+        archived: sample.status === 'complete',
+        archivedAt: sample.status === 'complete' ? created : null,
+      });
+    });
+
+    createdTasks.forEach((task) => {
+      tasks.push(task);
+      persistNewTask(task);
+    });
+
+    render();
+    showToast('Sample tasks loaded — explore and edit freely');
+  }
+
+  /* ---------------- Auth events ---------------- */
+
+  function bindAuthEvents() {
+    els.authTabs.forEach((button) => {
+      button.addEventListener('click', () => setAuthTab(button.dataset.authTab));
+    });
+
+    els.loginForm.addEventListener('submit', submitLogin);
+    els.registerForm.addEventListener('submit', submitRegister);
+
+    els.forgotBtn.addEventListener('click', () => {
+      openResetDialog({ email: els.loginEmail.value.trim() });
+    });
+
+    els.accountBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const willOpen = els.accountMenu.hidden;
+      els.accountMenu.hidden = !willOpen;
+      els.accountBtn.setAttribute('aria-expanded', String(willOpen));
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!els.accountMenu.hidden && !els.account.contains(event.target)) {
+        els.accountMenu.hidden = true;
+        els.accountBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    els.changePasswordBtn.addEventListener('click', openPasswordDialog);
+    els.signOutBtn.addEventListener('click', signOut);
+
+    els.passwordForm.addEventListener('submit', submitPasswordChange);
+
+    els.resetForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (resetState.step === 1) {
+        void requestReset();
+      } else {
+        void completeReset();
+      }
+    });
+
+    els.resetBackBtn.addEventListener('click', () => {
+      resetShowStep(1);
+      els.resetMailPreview.hidden = true;
+    });
+
+    els.viewMailBtn.addEventListener('click', viewLocalMail);
+
+    [els.loginError, els.registerError, els.pwError, els.resetErrorOne, els.resetErrorTwo].forEach((element) => {
+      if (!element) return;
+      element.hidden = true;
+    });
+  }
+
+  /* ---------------- Events ---------------- */
+
+  function bindEvents() {
+    els.form.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const title = els.title.value.trim();
+      if (!title) {
+        els.title.focus();
+        return;
+      }
+
+      const date = els.date.value || localDateStr();
+      const status = STATUS[els.status.value] ? els.status.value : 'todo';
+      const now = new Date().toISOString();
+      const scope = taskScope;
+      let teamId = null;
+      let teamName = '';
+      let assigneeId = null;
+      let assigneeName = '';
+      let assigneeEmail = '';
+
+      if (scope === 'team') {
+        const team = selectedTeam();
+        if (!team) {
+          showToast('Create a team first, then share a task with it.');
+          openTeamsDialog();
+          return;
+        }
+        teamId = team.id;
+        teamName = team.name;
+        assigneeId = els.taskAssignee.value || null;
+        const member = team.members.find((item) => item.id === assigneeId);
+        assigneeName = member ? member.name : '';
+        assigneeEmail = member ? member.email : '';
+      }
+
+      const task = normalizeTask({
+        id: uid(),
+        title,
+        notes: els.notes.value.trim(),
+        date,
+        status,
+        priority: els.priority.value,
+        archived: status === 'complete',
+        archivedAt: status === 'complete' ? now : null,
+        createdAt: now,
+        updatedAt: now,
+        scope,
+        teamId,
+        teamName,
+        assigneeId,
+        assigneeName,
+        assigneeEmail,
+        createdBy: currentUser ? currentUser.id : null,
+        createdByName: currentUser ? currentUser.name : '',
+        canDelete: true,
+      });
+
+      tasks.push(task);
+      persistNewTask(task);
+
+      els.title.value = '';
+      els.notes.value = '';
+      els.status.value = 'todo';
+      els.priority.value = 'medium';
+      els.title.focus();
+      render();
+
+      if (status === 'complete') {
+        showToast(scope === 'team' ? `Task added to ${teamName} and archived` : 'Task added and archived');
+      } else if (scope === 'team') {
+        showToast(`Task shared with ${teamName}`);
+      } else {
+        const label = groupTitle(date);
+        const when = ['Today', 'Tomorrow', 'Yesterday'].includes(label) ? ` for ${label.toLowerCase()}` : '';
+        showToast(`Task added${when}`);
+      }
+    });
+
+    els.detailsToggle.addEventListener('click', () => {
+      const isHidden = els.detailsRow.hasAttribute('hidden');
+      if (isHidden) {
+        els.detailsRow.removeAttribute('hidden');
+        els.detailsToggle.textContent = '− Notes';
+        els.notes.focus();
+      } else {
+        els.detailsRow.setAttribute('hidden', '');
+        els.detailsToggle.textContent = '+ Notes';
+      }
+      els.detailsToggle.setAttribute('aria-expanded', String(isHidden));
+    });
+
+    document.querySelectorAll('[data-set-date]').forEach((button) => {
+      button.addEventListener('click', () => {
+        els.date.value = button.dataset.setDate === 'tomorrow'
+          ? addDays(localDateStr(), 1)
+          : localDateStr();
+        els.date.focus();
+      });
+    });
+
+    els.taskList.addEventListener('click', (event) => {
+      if (event.target.closest('[data-clear-filters]')) {
+        clearFilters();
+        return;
+      }
+
+      if (event.target.closest('[data-load-samples]')) {
+        loadSamples();
+        return;
+      }
+
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+
+      const article = button.closest('[data-id]');
+      if (!article) return;
+
+      const id = article.dataset.id;
+      switch (button.dataset.action) {
+        case 'complete':
+          archiveTask(id);
+          break;
+        case 'restore':
+          restoreTask(id);
+          break;
+        case 'edit':
+          openEdit(id);
+          break;
+        case 'delete':
+          requestDelete(id);
+          break;
+        default:
+          break;
+      }
+    });
+
+    els.taskList.addEventListener('change', (event) => {
+      const select = event.target.closest('select[data-action="status"]');
+      if (!select) return;
+
+      const article = select.closest('[data-id]');
+      if (!article) return;
+
+      setStatus(article.dataset.id, select.value);
+    });
+
+    els.tabs.forEach((tab) => {
+      tab.addEventListener('click', () => setView(tab.dataset.view));
+    });
+
+    els.search.addEventListener('input', () => {
+      searchQuery = els.search.value;
+      renderTaskList();
+    });
+
+    els.statusFilter.addEventListener('change', () => {
+      statusFilter = els.statusFilter.value;
+      if (statusFilter === 'complete' && view !== 'archive') {
+        view = 'archive';
+      }
+      render();
+    });
+
+    els.scopeFilter.addEventListener('change', () => {
+      scopeFilter = els.scopeFilter.value;
+      render();
+    });
+
+    els.scopeButtons.forEach((button) => {
+      button.addEventListener('click', () => setTaskScope(button.dataset.scope));
+    });
+
+    els.taskTeam.addEventListener('change', renderAssigneePicker);
+    els.composerTeamsBtn.addEventListener('click', openTeamsDialog);
+    els.manageTeamsBtn.addEventListener('click', openTeamsDialog);
+
+    els.teamCreateForm.addEventListener('submit', submitTeamCreate);
+
+    els.teamList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-team-action]');
+      if (!button) return;
+
+      const teamId = button.dataset.teamId;
+      const team = teams.find((item) => item.id === teamId);
+      if (!team) return;
+
+      switch (button.dataset.teamAction) {
+        case 'rename': {
+          const card = button.closest('[data-team-id]');
+          const input = card ? card.querySelector('[data-team-name]') : null;
+          if (input) void renameTeam(teamId, input.value.trim());
+          break;
+        }
+        case 'delete':
+          openConfirm({
+            title: 'Delete team?',
+            message: `“${team.name}” and all tasks shared with it will be permanently removed.`,
+            confirmLabel: 'Delete team',
+            onConfirm: () => void deleteTeam(teamId),
+          });
+          break;
+        case 'add-member': {
+          const card = button.closest('[data-team-id]');
+          const input = card ? card.querySelector('[data-member-input]') : null;
+          if (input) void addTeamMember(teamId, input.value.trim());
+          break;
+        }
+        case 'remove-member':
+          void removeTeamMember(teamId, button.dataset.memberEmail || '');
+          break;
+        default:
+          break;
+      }
+    });
+
+    els.teamList.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+
+      const memberInput = event.target.closest('[data-member-input]');
+      if (memberInput) {
+        event.preventDefault();
+        const card = memberInput.closest('[data-team-id]');
+        if (card) void addTeamMember(card.dataset.teamId, memberInput.value.trim());
+        return;
+      }
+
+      const nameInput = event.target.closest('[data-team-name]');
+      if (nameInput) {
+        event.preventDefault();
+        const card = nameInput.closest('[data-team-id]');
+        if (card) void renameTeam(card.dataset.teamId, nameInput.value.trim());
+      }
+    });
+
+    els.editTitle.addEventListener('input', () => {
+      if (!els.editError.hidden) els.editError.hidden = true;
+    });
+
+    els.editForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const task = tasks.find((item) => item.id === editingId);
+      if (!task) return;
+
+      const title = els.editTitle.value.trim();
+      if (!title) {
+        els.editError.hidden = false;
+        els.editTitle.focus();
+        return;
+      }
+
+      const status = STATUS[els.editStatus.value] ? els.editStatus.value : task.status;
+      const date = els.editDate.value || task.date;
+
+      task.title = title;
+      task.date = date;
+      task.status = status;
+      task.priority = els.editPriority.value;
+      task.notes = els.editNotes.value.trim();
+
+      if (task.scope === 'team') {
+        task.assigneeId = els.editAssignee.value || null;
+        const team = teams.find((item) => item.id === task.teamId);
+        const member = team ? team.members.find((item) => item.id === task.assigneeId) : null;
+        task.assigneeName = member ? member.name : '';
+        task.assigneeEmail = member ? member.email : '';
+      }
+
+      if (status === 'complete') {
+        if (!task.archived) {
+          task.archived = true;
+          task.archivedAt = new Date().toISOString();
+        }
+      } else if (task.archived) {
+        task.archived = false;
+        task.archivedAt = null;
+      }
+
+      task.updatedAt = new Date().toISOString();
+      persistTask(task);
+      els.editDialog.close();
+      render();
+
+      showToast(status === 'complete' ? 'Task updated and archived' : 'Task updated');
+    });
+
+    document.querySelectorAll('[data-close]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const dialog = button.closest('dialog');
+        if (dialog) dialog.close();
+      });
+    });
+
+    document.querySelectorAll('dialog').forEach((dialog) => {
+      dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+    });
+
+    els.editDialog.addEventListener('close', () => {
+      editingId = null;
+    });
+
+    els.confirmDeleteBtn.addEventListener('click', () => {
+      const action = confirmAction;
+      confirmAction = null;
+      els.confirmDialog.close();
+      if (action) action();
+    });
+
+    els.confirmDialog.addEventListener('close', () => {
+      confirmAction = null;
+    });
+
+    els.toastAction.addEventListener('click', () => {
+      const undo = toastUndo;
+      hideToast();
+      if (undo) undo();
+    });
+
+    els.toastClose.addEventListener('click', hideToast);
+
+    els.exportBtn.addEventListener('click', exportJson);
+
+    els.importBtn.addEventListener('click', () => els.importFile.click());
+
+    els.importFile.addEventListener('change', () => {
+      const file = els.importFile.files && els.importFile.files[0];
+      els.importFile.value = '';
+      if (file) importJsonFile(file);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (document.querySelector('dialog[open]')) return;
+      if (!currentUser || els.appShell.hidden) return;
+
+      const target = event.target;
+      const tag = target && target.tagName ? target.tagName.toLowerCase() : '';
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || (target && target.isContentEditable)) {
+        return;
+      }
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+      if (event.key === '/') {
+        event.preventDefault();
+        els.search.focus();
+      } else if (event.key === 'n' || event.key === 'N') {
+        event.preventDefault();
+        els.title.focus();
+      }
+    });
+  }
+
+  /* ---------------- Init ---------------- */
+
+  function init() {
+    els.date.value = localDateStr();
+    els.status.innerHTML = statusOptions('todo');
+    els.priority.innerHTML = priorityOptions('medium');
+    els.editStatus.innerHTML = statusOptions('todo');
+    els.editPriority.innerHTML = priorityOptions('medium');
+    els.statusFilter.innerHTML = '<option value="all">All statuses</option>' + statusOptions('todo');
+    els.statusFilter.value = 'all';
+    els.scopeFilter.value = 'all';
+
+    initTheme();
+    bindAuthEvents();
+    bindEvents();
+    renderTeamPicker();
+    renderTeamsDialog();
+
+    void boot();
+  }
+
+  init();
+})();
+
+</script>
+</body>
+</html>
