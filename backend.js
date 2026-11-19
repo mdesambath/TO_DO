@@ -1229,18 +1229,34 @@
     throw new ApiError('Not found.', 404, 'not_found');
   }
 
+  // Parse API request targets directly instead of resolving them against
+  // window.location.href. The app only ever calls same-origin /api/... paths,
+  // and resolving against the document URL breaks in some browser contexts
+  // (for example about:blank previews) and on Windows file:// URLs.
+  function parseRequestUrl(url) {
+    let raw = String(url === undefined || url === null ? '' : url).trim();
+
+    const fragment = raw.indexOf('#');
+    if (fragment !== -1) raw = raw.slice(0, fragment);
+
+    const scheme = /^[A-Za-z][A-Za-z0-9+.-]*:\/\//.exec(raw);
+    if (scheme) {
+      raw = raw.slice(scheme[0].length);
+      const slash = raw.indexOf('/');
+      raw = slash === -1 ? '' : raw.slice(slash);
+    }
+
+    const question = raw.indexOf('?');
+    const pathname = question === -1 ? raw : raw.slice(0, question);
+    const search = question === -1 ? '' : raw.slice(question + 1);
+    const path = pathname.replace(/\/+$/, '') || '/';
+    return { path, searchParams: new URLSearchParams(search) };
+  }
+
   async function request(method, url, payload) {
     const upperMethod = String(method || 'GET').toUpperCase();
-    let parsed;
-    try {
-      parsed = new URL(url, window.location.href);
-    } catch (error) {
-      throw new ApiError('Invalid request.', 400, 'invalid_request');
-    }
-    // On Windows, file:///C:/... resolves an absolute /api path to
-    // /C:/api/... in pathname, so strip that drive prefix.
-    let path = parsed.pathname.replace(/\/+$/, '') || '/';
-    if (/^\/[A-Za-z]:/.test(path)) path = path.slice(3) || '/';
+    const parsed = parseRequestUrl(url);
+    const path = parsed.path;
 
     if (path.startsWith('/api/auth/')) return handleAuth(upperMethod, path, payload);
 
