@@ -680,7 +680,9 @@
           </select>
 
           <div class="row-actions">
-            ${task.archived ? `<button type="button" class="icon-btn" data-action="restore" aria-label="Restore task" title="Restore">${icon('restore')}</button>` : ''}
+            <button type="button" class="restore-btn" data-action="restore" aria-label="Restore task" title="Restore task">
+              ${icon('restore', 13)} Restore
+            </button>
             <button type="button" class="icon-btn" data-action="edit" aria-label="Edit task" title="Edit">${icon('pencil')}</button>
             ${task.canDelete === false ? '' : `<button type="button" class="icon-btn icon-btn-danger" data-action="delete" aria-label="Delete task" title="Delete">${icon('trash')}</button>`}
           </div>
@@ -748,7 +750,21 @@
 
   function restoreTask(id) {
     const task = tasks.find((item) => item.id === id);
-    if (!task || !task.archived) return;
+    if (!task) return;
+
+    if (!task.archived) {
+      if (task.status !== 'complete') {
+        showToast('This task is already active.');
+        return;
+      }
+      // Imported or legacy task marked complete but not archived.
+      task.status = 'todo';
+      task.updatedAt = new Date().toISOString();
+      persistTask(task);
+      render();
+      showToast('Task restored to active tasks');
+      return;
+    }
 
     task.archived = false;
     task.archivedAt = null;
